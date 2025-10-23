@@ -14,12 +14,17 @@ class UserFactory
     {
     }
 
-    public function create(string $email, string $password): User
+    public function create(string $email, string $password, string $givenName, ?string $familyName = null): User
     {
         $user = new User();
         $user->setEmail($email);
         $user->setCreatedAt(new DateTime());
         $user->setPassword($this->passwordEncoder->hashPassword($user, $password));
+        $user->setGivenName($givenName);
+
+        if ($familyName !== null) {
+            $user->setFamilyName($familyName);
+        }
 
         return $user;
     }

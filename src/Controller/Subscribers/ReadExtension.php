@@ -9,7 +9,10 @@ use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use App\Controller\Base\AbstractController;
+use App\Entity\ContentPlan;
 use App\Entity\Interfaces\DeletedAtSettableInterface;
+use App\Entity\Interfaces\DeletedBySettableInterface;
+use App\Entity\Project;
 use Doctrine\ORM\QueryBuilder;
 
 /**
@@ -25,12 +28,13 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
      * Collection operations without id, like GET /users
      */
     public function applyToCollection(
-        QueryBuilder $queryBuilder,
+        QueryBuilder                $queryBuilder,
         QueryNameGeneratorInterface $queryNameGenerator,
-        string $resourceClass,
-        Operation $operation = null,
-        array $context = []
-    ): void {
+        string                      $resourceClass,
+        Operation                   $operation = null,
+        array                       $context = []
+    ): void
+    {
         $this->andWhere($queryBuilder, $resourceClass);
     }
 
@@ -38,13 +42,14 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
      * Item operations with id, like GET /users/{id} or DELETE /users/{id}
      */
     public function applyToItem(
-        QueryBuilder $queryBuilder,
+        QueryBuilder                $queryBuilder,
         QueryNameGeneratorInterface $queryNameGenerator,
-        string $resourceClass,
-        array $identifiers,
-        Operation $operation = null,
-        array $context = []
-    ): void {
+        string                      $resourceClass,
+        array                       $identifiers,
+        Operation                   $operation = null,
+        array                       $context = []
+    ): void
+    {
         $this->andWhere($queryBuilder, $resourceClass);
     }
 
@@ -60,26 +65,31 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
         $rootTable = $queryBuilder->getRootAliases()[0];
         $this->resourceClassInterfaces = class_implements($resourceClass);
 
-        if ($this->hasResourceClassInterfaceOf(DeletedAtSettableInterface::class)) {
+        if ($this->hasResourceClassInterfaceOf(DeletedBySettableInterface::class)) {
             $this->hideDeleted($queryBuilder, $rootTable);
+        }
+
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return;
         }
 
         switch ($resourceClass) {
 //            case Application::class:
 //                $this->joinEntityAndAddUser($queryBuilder, $rootTable, 'company');
 //                break;
-//
-//            case Company::class:
-//                $this->addUser($queryBuilder, $rootTable);
-//                break;
+            case ContentPlan::class:
+            case Project::class:
+                $this->addUser($queryBuilder, $rootTable);
+                break;
         }
     }
 
     private function joinEntityAndAddUser(
         QueryBuilder $queryBuilder,
-        string $rootTable,
-        string $joinTable
-    ): void {
+        string       $rootTable,
+        string       $joinTable
+    ): void
+    {
         $queryBuilder->join("{$rootTable}.{$joinTable}", $joinTable);
 
         $this->addUser($queryBuilder, $joinTable);
@@ -97,7 +107,7 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
 
     private function hideDeleted(QueryBuilder $queryBuilder, string $tableName): void
     {
-        $queryBuilder->andWhere("{$tableName}.deletedAt is null");
+        $queryBuilder->andWhere("{$tableName}.deletedBy is null");
     }
 
     private function hasResourceClassInterfaceOf(string $interfaceName): bool

@@ -30,7 +30,7 @@ class UserCreateAction extends AbstractController
             throw new BadRequestHttpException('Email already taken');
         }
 
-        $user = $userFactory->create($data->getEmail(), $data->getPassword());
+        $user = $userFactory->create($data->getEmail(), $data->getPassword(), $data->getGivenName(), $data->getFamilyName());
         $userManager->save($user, true);
 
         return $user;

@@ -10,6 +10,7 @@ use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\UpdatedAtSettableInterface;
 use App\Entity\Interfaces\UpdatedBySettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
+use App\Entity\Project;
 use DateTime;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,7 +39,7 @@ class WriteSubscriber extends AbstractController implements EventSubscriberInter
                 $this->persist($model);
                 break;
 
-            case Request::METHOD_PUT:
+            case Request::METHOD_PATCH:
                 $this->update($model);
                 break;
         }
@@ -48,6 +49,10 @@ class WriteSubscriber extends AbstractController implements EventSubscriberInter
     {
         if ($model instanceof CreatedBySettableInterface) {
             $model->setCreatedBy($this->getUser());
+        }
+
+        if ($model instanceof Project) {
+            $model->setExecutor($this->getUser());
         }
 
         if ($model instanceof CreatedAtSettableInterface) {

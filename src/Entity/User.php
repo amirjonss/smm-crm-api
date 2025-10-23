@@ -31,6 +31,8 @@ use App\Entity\Traits\DeletedAtAndByAccessorsTrait;
 use App\Entity\Traits\UpdatedAtAndByAccessorsTrait;
 use App\Repository\UserRepository;
 use DateTimeInterface;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
@@ -74,8 +76,9 @@ use Symfony\Component\Validator\Constraints as Assert;
             openapi: new Operation(
                 summary: 'Authorization'
             ),
+            denormalizationContext: ['groups' => ['user:auth']],
             output: TokensDto::class,
-            name: 'auth',
+            name: 'auth'
         ),
         new Post(
             uriTemplate: 'users/auth/refreshToken',
@@ -139,11 +142,11 @@ class User implements
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\Email]
-    #[Groups(['users:read', 'user:write', 'user:put:write', 'user:isUniqueEmail:write'])]
+    #[Groups(['users:read', 'user:write', 'user:put:write', 'user:isUniqueEmail:write', 'user:auth'])]
     private ?string $email = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Groups(['user:write', 'user:changePassword:write'])]
+    #[Groups(['user:write', 'user:changePassword:write', 'user:auth'])]
     #[Assert\Length(min: 6, minMessage: 'Password must be at least {{ limit }} characters long')]
     private ?string $password = null;
 
@@ -168,6 +171,25 @@ class User implements
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     private ?self $deletedBy = null;
+
+    /**
+     * @var Collection<int, Project>
+     */
+    #[ORM\OneToMany(targetEntity: Project::class, mappedBy: 'executor', orphanRemoval: true)]
+    private Collection $projects;
+
+    #[ORM\Column(length: 255)]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write'])]
+    private ?string $givenName = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write'])]
+    private ?string $familyName = null;
+
+    public function __construct()
+    {
+        $this->projects = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -252,6 +274,60 @@ class User implements
     public function setEmail(string $email): self
     {
         $this->email = $email;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Project>
+     */
+    public function getProjects(): Collection
+    {
+        return $this->projects;
+    }
+
+    public function addProject(Project $project): static
+    {
+        if (!$this->projects->contains($project)) {
+            $this->projects->add($project);
+            $project->setExecutor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeProject(Project $project): static
+    {
+        if ($this->projects->removeElement($project)) {
+            // set the owning side to null (unless already changed)
+            if ($project->getExecutor() === $this) {
+                $project->setExecutor(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getGivenName(): ?string
+    {
+        return $this->givenName;
+    }
+
+    public function setGivenName(string $givenName): static
+    {
+        $this->givenName = $givenName;
+
+        return $this;
+    }
+
+    public function getFamilyName(): ?string
+    {
+        return $this->familyName;
+    }
+
+    public function setFamilyName(?string $familyName): static
+    {
+        $this->familyName = $familyName;
 
         return $this;
     }

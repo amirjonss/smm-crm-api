@@ -51,6 +51,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Post(
             controller: UserCreateAction::class,
+            security: "is_granted('ROLE_ADMIN')",
         ),
         new Patch(
             denormalizationContext: ['groups' => ['user:put:write']],

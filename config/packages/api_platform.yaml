@@ -1,6 +1,6 @@
 api_platform:
-    title: 'Project name'
-    description: 'Project description'
+    title: 'KH-AGENCY-CRM-API'
+    description: 'Project for managing content plans'
     version: '0.0.1'
 
     use_symfony_listeners: true

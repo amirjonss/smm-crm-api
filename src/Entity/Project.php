@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -9,6 +11,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Controller\DeleteAction;
+use App\Controller\TestAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -29,12 +32,13 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(),
         new GetCollection(),
         new Delete(controller: DeleteAction::class),
-        new Post(),
-        new Patch()
+        new Post(controller: TestAction::class),
+        new Patch(),
     ],
     normalizationContext: ['groups' => ['project:read']],
     denormalizationContext: ['groups' => ['project:write']]
 )]
+#[ApiFilter(SearchFilter::class, properties: ['executor.id' => 'exact'])]
 class Project implements
     CreatedAtSettableInterface,
     CreatedBySettableInterface,

@@ -147,7 +147,7 @@ class User implements
     private ?string $email = null;
 
     #[ORM\Column(type: 'string', length: 255)]
-    #[Groups(['user:write', 'user:changePassword:write', 'user:auth'])]
+    #[Groups(['user:changePassword:write', 'user:auth'])]
     #[Assert\Length(min: 6, minMessage: 'Password must be at least {{ limit }} characters long')]
     private ?string $password = null;
 

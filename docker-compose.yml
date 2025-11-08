@@ -88,6 +88,15 @@ services:
                 printf "%s\n" "0 0 * * * /usr/local/bin/backup.sh >> /var/log/cron.log 2>&1" > /etc/crontabs/root
                 crond -f -l 8
 
+    mailer:
+        image: axllent/mailpit
+        ports:
+            - "1025"
+            - "8025"
+        environment:
+            MP_SMTP_AUTH_ACCEPT_ANY: 1
+            MP_SMTP_AUTH_ALLOW_INSECURE: 1
+
 
     # #######################################################################
     # DKIM DNS SETUP INSTRUCTIONS:
@@ -123,32 +132,32 @@ services:
     #
     # UNCOMMENT BELOW
     # #######################################################################
-    mailserver:
-        profiles:
-            - mailserver
-        image: mailserver/docker-mailserver:15.0.2
-        container_name: ${DOCKER_PROJECT_NAME}_mailserver
-        hostname: ${MAILSERVER_DOMAINNAME}
-        domainname: ${MAILSERVER_DOMAINNAME}
-        restart: unless-stopped
-        cap_add:
-            - NET_ADMIN
-        environment:
-            ENABLE_DKIM: 1
-            OPENDKIM_KEY_LENGTH: 2048
-            DKIM_SELECTOR: ${MAILSERVER_DKIM_SELECTOR}
-            ONE_DIR: 1
-            PERMIT_DOCKER: network
-            SMTP_ONLY: 0
-            MAILSERVER_DOMAINNAME: ${MAILSERVER_DOMAINNAME}
-            MAILSERVER_EMAIL: ${MAILSERVER_EMAIL}
-            MAILSERVER_EMAIL_PASSWORD: ${MAILSERVER_EMAIL_PASSWORD}
-        command: bash -c "/docker/init-dkim.sh && /usr/bin/supervisord -c /etc/supervisor/supervisord.conf"
-        ports:
-            - "${DOCKER_MAILSERVER_SMTP_PORT}:587"
-        volumes:
-            - ./docker/mailserver/mail-data:/var/mail
-            - ./docker/mailserver/mail-state:/var/mail-state
-            - ./docker/mailserver/init-dkim.sh:/docker/init-dkim.sh
-            - ./docker/mailserver/dkim:/docker/mailserver/dkim
-            - ./docker/mailserver/opendkim/:/etc/opendkim/
+#    mailserver:
+#        profiles:
+#            - mailserver
+#        image: mailserver/docker-mailserver:15.0.2
+#        container_name: ${DOCKER_PROJECT_NAME}_mailserver
+#        hostname: ${MAILSERVER_DOMAINNAME}
+#        domainname: ${MAILSERVER_DOMAINNAME}
+#        restart: unless-stopped
+#        cap_add:
+#            - NET_ADMIN
+#        environment:
+#            ENABLE_DKIM: 1
+#            OPENDKIM_KEY_LENGTH: 2048
+#            DKIM_SELECTOR: ${MAILSERVER_DKIM_SELECTOR}
+#            ONE_DIR: 1
+#            PERMIT_DOCKER: network
+#            SMTP_ONLY: 0
+#            MAILSERVER_DOMAINNAME: ${MAILSERVER_DOMAINNAME}
+#            MAILSERVER_EMAIL: ${MAILSERVER_EMAIL}
+#            MAILSERVER_EMAIL_PASSWORD: ${MAILSERVER_EMAIL_PASSWORD}
+#        command: bash -c "/docker/init-dkim.sh && /usr/bin/supervisord -c /etc/supervisor/supervisord.conf"
+#        ports:
+#            - "${DOCKER_MAILSERVER_SMTP_PORT}:587"
+#        volumes:
+#            - ./docker/mailserver/mail-data:/var/mail
+#            - ./docker/mailserver/mail-state:/var/mail-state
+#            - ./docker/mailserver/init-dkim.sh:/docker/init-dkim.sh
+#            - ./docker/mailserver/dkim:/docker/mailserver/dkim
+#            - ./docker/mailserver/opendkim/:/etc/opendkim/

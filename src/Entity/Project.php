@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Controller\DeleteAction;
-use App\Controller\TestAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -32,7 +31,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(),
         new GetCollection(),
         new Delete(controller: DeleteAction::class),
-        new Post(controller: TestAction::class),
+        new Post(),
         new Patch(),
     ],
     normalizationContext: ['groups' => ['project:read']],

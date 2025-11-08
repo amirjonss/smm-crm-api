@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Validator\Constraints;
+namespace App\Validator\Constraint;
 
 use Symfony\Component\Validator\Constraint;
 
-#[\Attribute]
-class ImageFile extends Constraint
+#[Attribute]
+class ImageFileConstraint extends Constraint
 {
     public string $message = 'The file must be a valid image (JPEG, PNG, GIF, or WebP).';
     public string $maxSizeMessage = 'The file is too large ({{ size }} MB). Maximum allowed size is {{ limit }} MB.';

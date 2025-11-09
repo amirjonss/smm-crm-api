@@ -10,10 +10,10 @@ use App\Component\User\UserFactory;
 use App\Component\User\UserManager;
 use App\Controller\Base\AbstractController;
 use App\Entity\User;
+use App\Message\SendPasswdLoginByEmail;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Mailer\MailerInterface;
-use Symfony\Component\Mime\Email;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
@@ -27,7 +27,7 @@ class UserCreateAction extends AbstractController
         SerializerInterface $serializer,
         ValidatorInterface $validator,
         CurrentUser $currentUser,
-        private MailerInterface $mailer
+        private MessageBusInterface $messageBus
     ) {
         parent::__construct($serializer, $validator, $currentUser);
     }
@@ -50,7 +50,12 @@ class UserCreateAction extends AbstractController
             $this->sendEmail($data);
         }
 
-        $user = $userFactory->create($data->getEmail(), $data->getPassword(), $data->getGivenName(), $data->getFamilyName());
+        $user = $userFactory->create(
+            $data->getEmail(),
+            $data->getPassword(),
+            $data->getGivenName(),
+            $data->getFamilyName()
+        );
         $userManager->save($user, true);
 
         return $user;
@@ -68,12 +73,7 @@ class UserCreateAction extends AbstractController
 
     private function sendEmail(User $data): void
     {
-        $email = new Email();
-        $email
-            ->from('khagencyai@gmail.com')
-            ->to($data->getEmail())
-            ->subject('Password and Login')
-            ->html('login: ' . $data->getEmail() . '<br>' . 'passoword: ' . $data->getPassword());
-        $this->mailer->send($email);
+        $message = new SendPasswdLoginByEmail($data->getEmail(), $data->getPassword());
+        $this->messageBus->dispatch($message);
     }
 }

@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y \
 RUN git config --global --add safe.directory /var/www/html
 
 # for supervisor & redis
-# RUN apt-get install -y supervisor && pecl install -o -f redis && rm -rf /tmp/pear && docker-php-ext-enable redis
+ RUN apt-get install -y supervisor && pecl install -o -f redis && rm -rf /tmp/pear && docker-php-ext-enable redis
 
 WORKDIR /var/www/html
 

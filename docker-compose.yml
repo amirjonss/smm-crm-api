@@ -7,7 +7,7 @@ services:
             - ./:/var/www/html
             - ./docker/php/php.ini:/usr/local/etc/php/php.ini
             # if you use supervisor
-            #- ./docker/php/supervisor/messenger-worker.conf:/etc/supervisor/conf.d/messenger-worker.conf
+            - ./docker/php/supervisor/messenger-worker.conf:/etc/supervisor/conf.d/messenger-worker.conf
         depends_on:
             - db
 
@@ -38,10 +38,10 @@ services:
             - 127.0.0.1:${DOCKER_DATABASE_PORT}:3306  # use 5432 for pgsql
 
 
-    #    redis:
-    #        image: redis:7.4.4-alpine
-    #        restart: unless-stopped
-    #        container_name: ${DOCKER_PROJECT_NAME}_redis
+    redis:
+        image: redis:7.4.4-alpine
+        restart: unless-stopped
+        container_name: ${DOCKER_PROJECT_NAME}_redis
 
     # Backup block. Turns on with docker compose --profile backup up -d
     telegram-bot-api:

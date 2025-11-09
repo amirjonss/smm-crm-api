@@ -12,8 +12,8 @@ class ImageFileValidator extends ConstraintValidator
 {
     public function validate(mixed $value, Constraint $constraint): void
     {
-        if (!$constraint instanceof ImageFile) {
-            throw new UnexpectedTypeException($constraint, ImageFile::class);
+        if (!$constraint instanceof ImageFileValidator) {
+            throw new UnexpectedTypeException($constraint, ImageFileValidator::class);
         }
 
         if (null === $value) {

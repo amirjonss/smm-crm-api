@@ -8,7 +8,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model;
-use App\Validator\Constraints\ImageFile;
+use App\Validator\Constraint\ImageFileConstraint;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -54,7 +54,7 @@ class MediaObject
 
     #[Vich\UploadableField(mapping: 'media_object', fileNameProperty: 'filePath')]
     #[Assert\NotNull(message: 'Please upload a file')]
-    #[ImageFile]
+    #[ImageFileConstraint]
     public ?File $file = null;
 
     #[ApiProperty(writable: false)]

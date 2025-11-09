@@ -4,7 +4,7 @@ namespace App\Validator\Constraint;
 
 use Symfony\Component\Validator\Constraint;
 
-#[Attribute]
+#[\Attribute]
 class ImageFileConstraint extends Constraint
 {
     public string $message = 'The file must be a valid image (JPEG, PNG, GIF, or WebP).';

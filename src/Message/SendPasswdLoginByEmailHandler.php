@@ -20,7 +20,7 @@ readonly class SendPasswdLoginByEmailHandler
             ->from('khagencyai@gmail.com')
             ->to($message->getEmail())
             ->subject('Password and Login')
-            ->html('login: ' . $message->getEmail() . '<br>' . 'passoword: ' . $message->getPassword());
+            ->html('login: ' . $message->getEmail() . '<br>' . 'password: ' . $message->getPassword());
         $this->mailer->send($email);
     }
 }

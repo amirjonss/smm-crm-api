@@ -43,9 +43,9 @@ deploy-prod-job:
     only:
         - master
     script:
-        - echo "${DEPLOY_PRIVATE_SSH_KEY_PROD:-$DEPLOY_PRIVATE_SSH_KEY_DEV}" | tr -d '\r' | ssh-add -
+        - echo "${DEPLOY_PRIVATE_SSH_KEY_PROD}" | tr -d '\r' | ssh-add -
         - echo "Deploying the PROD project..."
-        - ssh -tt -o StrictHostKeyChecking=no -p ${DEPLOY_PORT_PROD:-${DEPLOY_PORT_DEV:-22}} ${DEPLOY_HOST_PROD:-$DEPLOY_HOST_DEV} \
+        - ssh -tt -o StrictHostKeyChecking=no -p ${DEPLOY_PORT_PROD} ${DEPLOY_HOST_PROD} \
             "cd ${DEPLOY_PATH_PROD:-/root/sites/${PROJECT_NAME}/} &&
             git reset --hard &&
             git pull origin main &&

@@ -17,7 +17,7 @@ readonly class SendPasswdLoginByEmailHandler
     {
         $email = new Email();
         $email
-            ->from('khsystem@mail.ru')
+            ->from('khagencyai@gmail.com')
             ->to($message->getEmail())
             ->subject('Password and Login')
             ->html('login: ' . $message->getEmail() . '<br>' . 'passoword: ' . $message->getPassword());

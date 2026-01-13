@@ -49,11 +49,11 @@ class Project implements
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['project:read'])]
+    #[Groups(['project:read', 'content-plan:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['project:read', 'project:write'])]
+    #[Groups(['project:read', 'project:write', 'content-plan:read'])]
     #[Assert\NotBlank]
     private ?string $name = null;
 

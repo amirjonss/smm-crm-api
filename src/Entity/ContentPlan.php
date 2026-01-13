@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
@@ -23,7 +24,8 @@ use Symfony\Component\Validator\Constraints as Assert;
     normalizationContext: ['groups' => ['content-plan:read']],
     denormalizationContext: ['groups' => ['content-plan:write']]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['project.id' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: ['project.id' => 'exact', 'date' => 'exact'])]
+#[ApiFilter(DateFilter::class, properties: ['date'])]
 class ContentPlan implements
     CreatedAtSettableInterface,
     CreatedBySettableInterface,

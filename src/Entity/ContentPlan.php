@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Entity;
 
 use ApiPlatform\Doctrine\Orm\Filter\DateFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
@@ -28,6 +29,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ApiFilter(SearchFilter::class, properties: ['project.id' => 'exact', 'date' => 'exact'])]
 #[ApiFilter(DateFilter::class, properties: ['date'])]
+#[ApiFilter(OrderFilter::class, properties: ['position', 'date', 'id'])]
 class ContentPlan implements
     CreatedAtSettableInterface,
     CreatedBySettableInterface,
@@ -90,9 +92,25 @@ class ContentPlan implements
     #[Groups(['content-plan:read'])]
     private ?User $deletedBy = null;
 
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
+    #[Groups(['content-plan:read', 'content-plan:write'])]
+    private int $position = 0;
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getPosition(): int
+    {
+        return $this->position;
+    }
+
+    public function setPosition(int $position): static
+    {
+        $this->position = $position;
+
+        return $this;
     }
 
     public function getPost(): ?string

@@ -182,11 +182,11 @@ class User implements
     private Collection $projects;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
     private ?string $givenName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
     private ?string $familyName = null;
 
     public function __construct()

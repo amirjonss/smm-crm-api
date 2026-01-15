@@ -61,7 +61,7 @@ class Project implements
 
     #[ORM\ManyToOne(inversedBy: 'projects')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['project:read'])]
+    #[Groups(['project:read', 'content-plan:read'])]
     private ?User $executor = null;
 
     #[ORM\Column(length: 255)]

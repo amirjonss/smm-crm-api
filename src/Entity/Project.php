@@ -32,9 +32,12 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(),
         new GetCollection(),
-        new Delete(controller: DeleteAction::class),
-        new Post(),
-        new Patch(),
+        new Delete(
+            controller: DeleteAction::class,
+            security: "object.getExecutor() == user"
+        ),
+        new Post(security: "is_granted('ROLE_USER')"),
+        new Patch(security: "object.getExecutor() == user"),
     ],
     normalizationContext: ['groups' => ['project:read']],
     denormalizationContext: ['groups' => ['project:write']]

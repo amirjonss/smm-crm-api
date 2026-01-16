@@ -32,9 +32,12 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(),
         new GetCollection(),
-        new Delete(controller: DeleteAction::class),
-        new Post(),
-        new Patch(),
+        new Delete(
+            controller: DeleteAction::class,
+            security: "object.getExecutor() == user"
+        ),
+        new Post(security: "is_granted('ROLE_USER')"),
+        new Patch(security: "object.getExecutor() == user"),
     ],
     normalizationContext: ['groups' => ['project:read']],
     denormalizationContext: ['groups' => ['project:write']]
@@ -61,7 +64,7 @@ class Project implements
 
     #[ORM\ManyToOne(inversedBy: 'projects')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['project:read'])]
+    #[Groups(['project:read', 'content-plan:read'])]
     private ?User $executor = null;
 
     #[ORM\Column(length: 255)]

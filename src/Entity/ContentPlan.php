@@ -25,6 +25,8 @@ use App\Entity\Interfaces\UpdatedAtSettableInterface;
 use App\Entity\Interfaces\UpdatedBySettableInterface;
 use App\Entity\Traits\CreatedUpdatedDeletedAtAndByTrait;
 use App\Repository\ContentPlanRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -143,6 +145,15 @@ class ContentPlan implements
     #[Assert\NotBlank]
     #[Assert\Choice(['PUBLISHED', 'CANCELED', 'NOT_PUBLISHED', 'RESCHEDULED'])]
     private string $status = 'NOT_PUBLISHED';
+
+    #[ORM\ManyToMany(targetEntity: ContentPlanPlatform::class, inversedBy: 'contentPlans', cascade: ['persist', 'remove'])]
+    #[Groups(['content-plan:read', 'content-plan:write'])]
+    private Collection $platforms;
+
+    public function __construct()
+    {
+        $this->platforms = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -289,6 +300,33 @@ class ContentPlan implements
     public function setDeletedBy(?UserInterface $deletedBy): static
     {
         $this->deletedBy = $deletedBy;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ContentPlanPlatform>
+     */
+    public function getPlatforms(): Collection
+    {
+        return $this->platforms;
+    }
+
+    public function addPlatform(ContentPlanPlatform $platform): static
+    {
+        if (!$this->platforms->contains($platform)) {
+            $this->platforms->add($platform);
+            $platform->addContentPlan($this);
+        }
+
+        return $this;
+    }
+
+    public function removePlatform(ContentPlanPlatform $platform): static
+    {
+        if ($this->platforms->removeElement($platform)) {
+            $platform->removeContentPlan($this);
+        }
 
         return $this;
     }

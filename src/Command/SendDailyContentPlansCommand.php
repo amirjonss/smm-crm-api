@@ -64,40 +64,46 @@ class SendDailyContentPlansCommand extends Command
             }
 
             $executorName = htmlspecialchars($executorNameRaw);
+            $post = htmlspecialchars($plan->getPost());
 
-                        $post = htmlspecialchars($plan->getPost());
+            $platformsInfo = [];
+            foreach ($plan->getPlatforms() as $platform) {
+                $pNameRaw = $platform->getName();
+                $pName = match ($pNameRaw) {
+                    'YOUTUBE' => 'YouTube',
+                    'INSTAGRAM' => 'Instagram',
+                    'FACEBOOK' => 'Facebook',
+                    'TELEGRAM' => 'Telegram',
+                    default => htmlspecialchars($pNameRaw ?? 'Unknown'),
+                };
 
-            
+                $pStatusRaw = $platform->getStatus();
+                $pStatus = match ($pStatusRaw) {
+                    'PUBLISHED' => 'Опубликовано ✅',
+                    'CANCELED' => 'Отменено ❌',
+                    'NOT_PUBLISHED' => 'Не опубликовано ⏳',
+                    'RESCHEDULED' => 'Перенесено 🔄',
+                    default => htmlspecialchars($pStatusRaw),
+                };
+                $platformsInfo[] = "  • {$pName}: {$pStatus}";
+            }
+            $platformsString = !empty($platformsInfo) ? implode("\n", $platformsInfo) : "  • Платформы не указаны";
 
-                        $statusRaw = $plan->getStatus();
+//            $statusRaw = $plan->getStatus();
+//            $status = match ($statusRaw) {
+//                'PUBLISHED' => 'Опубликовано ✅',
+//                'CANCELED' => 'Отменено ❌',
+//                'NOT_PUBLISHED' => 'Не опубликовано ⏳',
+//                'RESCHEDULED' => 'Перенесено 🔄',
+//                default => htmlspecialchars($statusRaw),
+//            };
 
-                        $status = match ($statusRaw) {
-
-                            'PUBLISHED' => 'Опубликовано ✅',
-
-                            'CANCELED' => 'Отменено ❌',
-
-                            'NOT_PUBLISHED' => 'Не опубликовано ⏳',
-
-                            'RESCHEDULED' => 'Перенесено 🔄',
-
-                            default => htmlspecialchars($statusRaw),
-
-                        };
-
-            
-
-                        $message .= "📌 <b>Проект:</b> {$projectName}\n";
-
-                        $message .= "👤 <b>Исполнитель:</b> {$executorName}\n";
-
-                        $message .= "📝 <b>Пост:</b> {$post}\n";
-
-                        $message .= "📊 <b>Статус:</b> {$status}\n";
-
-                        $message .= "--------------------------------\n";
-
-            
+            $message .= "📌 <b>Проект:</b> {$projectName}\n";
+            $message .= "👤 <b>Исполнитель:</b> {$executorName}\n";
+            $message .= "📝 <b>Пост:</b> {$post}\n";
+//            $message .= "📊 <b>Статус:</b> {$status}\n";
+            $message .= "📱 <b>Платформы:</b>\n{$platformsString}\n";
+            $message .= "--------------------------------\n";
         }
 
         $message .= "🤖";

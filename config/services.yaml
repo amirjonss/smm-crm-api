@@ -6,12 +6,17 @@
 parameters:
     tokens_creator.access_expiration_period: '%env(TOKEN_ACCESS_EXPIRATION_PERIOD)%'
     tokens_creator.refresh_expiration_period: '%env(TOKEN_REFRESH_EXPIRATION_PERIOD)%'
+    telegram_bot_token: '%env(TELEGRAM_BOT_TOKEN)%'
+    telegram_chat_id: '%env(TELEGRAM_CHAT_ID)%'
 
 services:
     # default configuration for services in *this* file
     _defaults:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+        bind:
+            $telegramBotToken: '%telegram_bot_token%'
+            $telegramChatId: '%telegram_chat_id%'
 
     # makes classes in src/ available to be used as services
     # this creates a service per class whose id is the fully-qualified class name

@@ -46,6 +46,21 @@ class ContentPlanRepository extends ServiceEntityRepository
             ->getSingleScalarResult();
     }
 
+    /**
+     * @return ContentPlan[]
+     */
+    public function findTodayContentPlans(): array
+    {
+        $today = new \DateTime('today');
+
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.date = :today')
+            ->setParameter('today', $today)
+            ->orderBy('c.position', 'ASC') // Optional: order by position
+            ->getQuery()
+            ->getResult();
+    }
+
     //    /**
     //     * @return ContentPlan[] Returns an array of ContentPlan objects
     //     */

@@ -14,9 +14,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use ApiPlatform\OpenApi\Model\Operation;
-use App\Controller\ContentPlanCountAction;
-use App\Controller\ContentPlanMyCountAction;
 use App\Controller\DeleteAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
@@ -25,6 +22,8 @@ use App\Entity\Interfaces\UpdatedAtSettableInterface;
 use App\Entity\Interfaces\UpdatedBySettableInterface;
 use App\Entity\Traits\CreatedUpdatedDeletedAtAndByTrait;
 use App\Repository\ContentPlanRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -42,24 +41,6 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Post(
             security: "is_granted('ROLE_USER')"
-        ),
-        new GetCollection(
-            uriTemplate: '/content_plans/count/published',
-            controller: ContentPlanCountAction::class,
-            openapi: new Operation(
-                summary: 'Get count of published content plans for the current month',
-            ),
-            security: "is_granted('ROLE_ADMIN')",
-            name: 'countPublished'
-        ),
-        new GetCollection(
-            uriTemplate: '/content_plans/my-count/published',
-            controller: ContentPlanMyCountAction::class,
-            openapi: new Operation(
-                summary: 'Get count of MY published content plans for the current month',
-            ),
-            security: "is_granted('ROLE_USER')",
-            name: 'myCountPublished'
         ),
         new Patch(
             security: "object.getProject().getExecutor() == user"
@@ -138,27 +119,18 @@ class ContentPlan implements
     #[Groups(['content-plan:read', 'content-plan:write'])]
     private int $position = 0;
 
-    #[ORM\Column(length: 255, options: ['default' => 'NOT_PUBLISHED'])]
+    #[ORM\ManyToMany(targetEntity: ContentPlanPlatform::class, inversedBy: 'contentPlans', cascade: ['persist', 'remove'])]
     #[Groups(['content-plan:read', 'content-plan:write'])]
-    #[Assert\NotBlank]
-    #[Assert\Choice(['PUBLISHED', 'CANCELED', 'NOT_PUBLISHED', 'RESCHEDULED'])]
-    private string $status = 'NOT_PUBLISHED';
+    private Collection $platforms;
+
+    public function __construct()
+    {
+        $this->platforms = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getStatus(): string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-
-        return $this;
     }
 
     public function getPosition(): int
@@ -289,6 +261,33 @@ class ContentPlan implements
     public function setDeletedBy(?UserInterface $deletedBy): static
     {
         $this->deletedBy = $deletedBy;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ContentPlanPlatform>
+     */
+    public function getPlatforms(): Collection
+    {
+        return $this->platforms;
+    }
+
+    public function addPlatform(ContentPlanPlatform $platform): static
+    {
+        if (!$this->platforms->contains($platform)) {
+            $this->platforms->add($platform);
+            $platform->addContentPlan($this);
+        }
+
+        return $this;
+    }
+
+    public function removePlatform(ContentPlanPlatform $platform): static
+    {
+        if ($this->platforms->removeElement($platform)) {
+            $platform->removeContentPlan($this);
+        }
 
         return $this;
     }

@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Entity\ContentPlan;
+use App\Entity\ContentPlanPlatform;
 use App\Entity\Project;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
@@ -96,13 +97,37 @@ class SeedDatabaseCommand extends Command
         $io->section('Truncating tables...');
         $connection = $this->entityManager->getConnection();
         $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-        $connection->executeStatement('TRUNCATE TABLE content_plan');
-        $connection->executeStatement('TRUNCATE TABLE project');
-        $connection->executeStatement('TRUNCATE TABLE user');
+        
+        $tables = [
+            'content_plan_content_plan_platform',
+            'content_plan_platform',
+            'content_plan',
+            'project',
+            'user'
+        ];
+
+        foreach ($tables as $table) {
+            try {
+                $connection->executeStatement("TRUNCATE TABLE $table");
+            } catch (\Exception $e) {
+                // Ignore if table doesn't exist, though it should
+            }
+        }
+        
         $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
         $io->success('Tables truncated.');
 
         $io->section('Generating data...');
+
+        // Create Admin
+        $admin = new User();
+        $admin->setEmail('admin@admin.admin');
+        $admin->setGivenName('Super');
+        $admin->setFamilyName('Admin');
+        $admin->setRoles(['ROLE_ADMIN']);
+        $admin->setCreatedAt(new \DateTime());
+        $admin->setPassword($this->passwordHasher->hashPassword($admin, 'string'));
+        $this->entityManager->persist($admin);
 
         $userCount = 10;
         $projectCountPerUser = 5;
@@ -111,7 +136,6 @@ class SeedDatabaseCommand extends Command
         $progressBar->start();
 
         $formats = ['Reels', 'Carousel', 'Post', 'Animation', 'Story'];
-        $statuses = ['PUBLISHED', 'CANCELED', 'NOT_PUBLISHED', 'RESCHEDULED'];
 
         for ($i = 1; $i <= $userCount; $i++) {
             $firstName = self::FIRST_NAMES[array_rand(self::FIRST_NAMES)];
@@ -123,7 +147,7 @@ class SeedDatabaseCommand extends Command
             $user->setFamilyName($lastName);
             $user->setRoles(['ROLE_USER']);
             $user->setCreatedAt(new \DateTime());
-            $user->setPassword($this->passwordHasher->hashPassword($user, 'password'));
+            $user->setPassword($this->passwordHasher->hashPassword($user, 'string'));
 
             $this->entityManager->persist($user);
 
@@ -142,9 +166,9 @@ class SeedDatabaseCommand extends Command
                 
                 $this->entityManager->persist($project);
 
-                $this->createContentPlans($project, $user, 4, 0, $formats, $statuses);   // This Month
-                $this->createContentPlans($project, $user, 3, -1, $formats, $statuses);  // Last Month
-                $this->createContentPlans($project, $user, 3, -2, $formats, $statuses);  // Prev Month
+                $this->createContentPlans($project, $user, 4, 0, $formats);   // This Month
+                $this->createContentPlans($project, $user, 3, -1, $formats);  // Last Month
+                $this->createContentPlans($project, $user, 3, -2, $formats);  // Prev Month
                 
                 $progressBar->advance();
             }
@@ -169,8 +193,11 @@ class SeedDatabaseCommand extends Command
         return sprintf("998 (%d) %d - %d - %d", $code, $part1, $part2, $part3);
     }
 
-    private function createContentPlans(Project $project, User $user, int $count, int $monthOffset, array $formats, array $statuses): void
+    private function createContentPlans(Project $project, User $user, int $count, int $monthOffset, array $formats): void
     {
+        $platformNames = ['YOUTUBE', 'INSTAGRAM', 'FACEBOOK', 'TELEGRAM'];
+        $platformStatuses = ['PUBLISHED', 'CANCELED', 'NOT_PUBLISHED', 'RESCHEDULED'];
+
         for ($k = 0; $k < $count; $k++) {
             $template = self::POST_TEMPLATES[array_rand(self::POST_TEMPLATES)];
             $topic = self::TOPICS[array_rand(self::TOPICS)];
@@ -182,7 +209,6 @@ class SeedDatabaseCommand extends Command
             $plan = new ContentPlan();
             $plan->setPost($postTitle);
             $plan->setFormat($formats[array_rand($formats)]);
-            $plan->setStatus($statuses[array_rand($statuses)]);
             $plan->setIdea(self::IDEAS[array_rand(self::IDEAS)] . " (Ref " . rand(1, 100) . ")");
             $plan->setProject($project);
             $plan->setCreatedBy($user);
@@ -199,6 +225,19 @@ class SeedDatabaseCommand extends Command
             
             $plan->setDate($date);
             $plan->setPosition($k);
+
+            // Add platforms
+            $shuffledNames = $platformNames;
+            shuffle($shuffledNames);
+            $numPlatforms = rand(1, count($platformNames));
+            $selectedNames = array_slice($shuffledNames, 0, $numPlatforms);
+
+            foreach ($selectedNames as $pName) {
+                $platform = new ContentPlanPlatform();
+                $platform->setName($pName);
+                $platform->setStatus($platformStatuses[array_rand($platformStatuses)]);
+                $plan->addPlatform($platform);
+            }
 
             $this->entityManager->persist($plan);
         }

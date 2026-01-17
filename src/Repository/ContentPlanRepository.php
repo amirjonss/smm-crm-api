@@ -17,35 +17,6 @@ class ContentPlanRepository extends ServiceEntityRepository
         parent::__construct($registry, ContentPlan::class);
     }
 
-    public function countPublishedContentPlans(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
-    {
-        return (int) $this->createQueryBuilder('c')
-            ->select('COUNT(c.id)')
-            ->andWhere('c.status = :status')
-            ->andWhere('c.date BETWEEN :startDate AND :endDate')
-            ->setParameter('status', 'PUBLISHED')
-            ->setParameter('startDate', $startDate)
-            ->setParameter('endDate', $endDate)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
-    public function countPublishedContentPlansForUser(User $user, \DateTimeInterface $startDate, \DateTimeInterface $endDate): int
-    {
-        return (int) $this->createQueryBuilder('c')
-            ->select('COUNT(c.id)')
-            ->innerJoin('c.project', 'p')
-            ->andWhere('p.executor = :user')
-            ->andWhere('c.status = :status')
-            ->andWhere('c.date BETWEEN :startDate AND :endDate')
-            ->setParameter('user', $user)
-            ->setParameter('status', 'PUBLISHED')
-            ->setParameter('startDate', $startDate)
-            ->setParameter('endDate', $endDate)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
-
     /**
      * @return ContentPlan[]
      */

@@ -89,19 +89,9 @@ class SendDailyContentPlansCommand extends Command
             }
             $platformsString = !empty($platformsInfo) ? implode("\n", $platformsInfo) : "  • Платформы не указаны";
 
-//            $statusRaw = $plan->getStatus();
-//            $status = match ($statusRaw) {
-//                'PUBLISHED' => 'Опубликовано ✅',
-//                'CANCELED' => 'Отменено ❌',
-//                'NOT_PUBLISHED' => 'Не опубликовано ⏳',
-//                'RESCHEDULED' => 'Перенесено 🔄',
-//                default => htmlspecialchars($statusRaw),
-//            };
-
             $message .= "📌 <b>Проект:</b> {$projectName}\n";
             $message .= "👤 <b>Исполнитель:</b> {$executorName}\n";
             $message .= "📝 <b>Пост:</b> {$post}\n";
-//            $message .= "📊 <b>Статус:</b> {$status}\n";
             $message .= "📱 <b>Платформы:</b>\n{$platformsString}\n";
             $message .= "--------------------------------\n";
         }

@@ -89,7 +89,7 @@ Entities are not physically deleted. The `DeleteAction` controller marks entitie
 
 - **User**: Authentication, roles (ROLE_USER, ROLE_ADMIN), owns Projects
 - **Project**: Belongs to executor (User), contains ContentPlans
-- **ContentPlan**: Content scheduling with format (Reels, Carousel, Post, Animation, Story), status (PUBLISHED, CANCELED, NOT_PUBLISHED, RESCHEDULED), position ordering
+- **ContentPlan**: Content scheduling with format (Reels, Carousel, Post, Animation, Story), position ordering
 
 ## Environment
 

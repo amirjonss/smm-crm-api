@@ -27,10 +27,10 @@ deploy-dev-job:
     only:
         - dev
     script:
-        - echo "$DEPLOY_PRIVATE_SSH_KEY_DEV" | tr -d '\r' | ssh-add -
+        - echo "$DEPLOY_PRIVATE_SSH_KEY_PROD" | tr -d '\r' | ssh-add -
         - echo "Deploying the DEV project..."
-        - ssh -tt -o StrictHostKeyChecking=no -p ${DEPLOY_PORT_DEV:-22} ${DEPLOY_HOST_DEV} \
-            "cd ${DEPLOY_PATH_DEV:-/root/sites/${PROJECT_NAME}-dev/} &&
+        - ssh -tt -o StrictHostKeyChecking=no -p ${DEPLOY_PORT_PROD:-22} ${DEPLOY_HOST_PROD} \
+            "cd ${DEPLOY_PATH_PROD:-/root/sites/${PROJECT_NAME}-dev/} &&
             git reset --hard &&
             git pull origin dev &&
             docker compose down &&

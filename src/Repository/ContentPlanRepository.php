@@ -17,33 +17,19 @@ class ContentPlanRepository extends ServiceEntityRepository
         parent::__construct($registry, ContentPlan::class);
     }
 
-    public function countPublishedContentPlans(\DateTimeInterface $startDate, \DateTimeInterface $endDate): int
+    /**
+     * @return ContentPlan[]
+     */
+    public function findTodayContentPlans(): array
     {
-        return (int) $this->createQueryBuilder('c')
-            ->select('COUNT(c.id)')
-            ->andWhere('c.status = :status')
-            ->andWhere('c.date BETWEEN :startDate AND :endDate')
-            ->setParameter('status', 'PUBLISHED')
-            ->setParameter('startDate', $startDate)
-            ->setParameter('endDate', $endDate)
-            ->getQuery()
-            ->getSingleScalarResult();
-    }
+        $today = new \DateTime('today');
 
-    public function countPublishedContentPlansForUser(User $user, \DateTimeInterface $startDate, \DateTimeInterface $endDate): int
-    {
-        return (int) $this->createQueryBuilder('c')
-            ->select('COUNT(c.id)')
-            ->innerJoin('c.project', 'p')
-            ->andWhere('p.executor = :user')
-            ->andWhere('c.status = :status')
-            ->andWhere('c.date BETWEEN :startDate AND :endDate')
-            ->setParameter('user', $user)
-            ->setParameter('status', 'PUBLISHED')
-            ->setParameter('startDate', $startDate)
-            ->setParameter('endDate', $endDate)
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.date = :today')
+            ->setParameter('today', $today)
+            ->orderBy('c.position', 'ASC') // Optional: order by position
             ->getQuery()
-            ->getSingleScalarResult();
+            ->getResult();
     }
 
     //    /**

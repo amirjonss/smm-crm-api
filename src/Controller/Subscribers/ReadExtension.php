@@ -10,6 +10,7 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use App\Controller\Base\AbstractController;
 use App\Entity\ContentPlan;
+use App\Entity\ContentPlanPlatform;
 use App\Entity\Interfaces\DeletedAtSettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
 use App\Entity\Project;
@@ -78,6 +79,7 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
 //                $this->joinEntityAndAddUser($queryBuilder, $rootTable, 'company');
 //                break;
             case ContentPlan::class:
+            case ContentPlanPlatform::class:
             case Project::class:
                 $this->addUser($queryBuilder, $rootTable);
                 break;

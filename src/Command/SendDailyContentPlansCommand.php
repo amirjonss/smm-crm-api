@@ -9,6 +9,7 @@ use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
@@ -21,7 +22,7 @@ class SendDailyContentPlansCommand extends Command
     public function __construct(
         private ContentPlanRepository $contentPlanRepository,
         private string                $telegramBotToken,
-        private string                $telegramChatId
+        private array                 $telegramChatId
     )
     {
         parent::__construct();
@@ -29,15 +30,27 @@ class SendDailyContentPlansCommand extends Command
 
     protected function configure(): void
     {
-        // No arguments needed, taken from .env
+        $this->addOption(
+            'chatId',
+            null,
+            InputOption::VALUE_REQUIRED,
+            'Telegram chat ID to send the message to'
+        );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
 
-        if (empty($this->telegramBotToken) || empty($this->telegramChatId)) {
-            $io->error('TELEGRAM_BOT_TOKEN or TELEGRAM_CHAT_ID is not configured in .env');
+        $chatId = $input->getOption('chatId');
+
+        if (empty($chatId)) {
+            $io->error('The --chatId option is required.');
+            return Command::FAILURE;
+        }
+
+        if (empty($this->telegramBotToken)) {
+            $io->error('TELEGRAM_BOT_TOKEN is not configured in .env');
             return Command::FAILURE;
         }
 
@@ -47,7 +60,7 @@ class SendDailyContentPlansCommand extends Command
 
         if (empty($plans)) {
             $io->info('No content plans for today.');
-            $this->sendMessage($this->telegramBotToken, $this->telegramChatId, "<b>{$dayOfWeek} - {$date}</b>\n\nНа сегодня планов нет.");
+            $this->sendMessage($this->telegramBotToken, $chatId, "<b>{$dayOfWeek} - {$date}</b>\n\nНа сегодня планов нет.");
             return Command::SUCCESS;
         }
 
@@ -105,7 +118,7 @@ class SendDailyContentPlansCommand extends Command
         $message = rtrim($message);
 
         try {
-            $this->sendMessage($this->telegramBotToken, $this->telegramChatId, $message);
+            $this->sendMessage($this->telegramBotToken, $chatId, $message);
             $io->success('Message sent to Telegram.');
         } catch (RuntimeException $e) {
             $io->error($e->getMessage());

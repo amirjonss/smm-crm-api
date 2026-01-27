@@ -55,6 +55,12 @@ security:
             methods:
                 - get
 
+        webhook_content_plans:
+            pattern: ^/api/webhook/content-plans/send-daily$
+            security: false
+            methods:
+                - post
+
         main:
             stateless: true
             security: true

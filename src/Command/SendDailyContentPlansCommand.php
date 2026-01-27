@@ -43,60 +43,66 @@ class SendDailyContentPlansCommand extends Command
 
         $plans = $this->contentPlanRepository->findTodayContentPlans();
         $date = date('d.m.Y');
+        $dayOfWeek = $this->getDayOfWeekInUzbek((int)date('w'));
 
         if (empty($plans)) {
             $io->info('No content plans for today.');
-            $this->sendMessage($this->telegramBotToken, $this->telegramChatId, "📅 <b>Контент-планы на {$date}</b>\n\nНа сегодня планов нет.");
+            $this->sendMessage($this->telegramBotToken, $this->telegramChatId, "<b>{$dayOfWeek} - {$date}</b>\n\nНа сегодня планов нет.");
             return Command::SUCCESS;
         }
 
-        $message = "📅 <b>Контент-планы на {$date}</b>\n\n";
+        $message = "<b>{$dayOfWeek} - {$date}</b>\n\n";
 
+        // Group plans by project
+        $projectPlans = [];
         foreach ($plans as $plan) {
             $project = $plan->getProject();
-            $projectName = htmlspecialchars($project ? $project->getName() : 'Неизвестный проект');
+            $projectName = $project ? $project->getName() : 'Неизвестный проект';
 
-            $executor = $project ? $project->getExecutor() : null;
-            $executorNameRaw = $executor ? trim(($executor->getGivenName() ?? '') . ' ' . ($executor->getFamilyName() ?? '')) : 'Не указан';
-
-            if (empty($executorNameRaw)) {
-                $executorNameRaw = 'Не указан';
+            if (!isset($projectPlans[$projectName])) {
+                $projectPlans[$projectName] = [];
             }
 
-            $executorName = htmlspecialchars($executorNameRaw);
-            $post = htmlspecialchars($plan->getPost());
-
-            $platformsInfo = [];
             foreach ($plan->getPlatforms() as $platform) {
                 $pNameRaw = $platform->getName();
-                $pName = match ($pNameRaw) {
-                    'YOUTUBE' => 'YouTube',
-                    'INSTAGRAM' => 'Instagram',
-                    'FACEBOOK' => 'Facebook',
-                    'TELEGRAM' => 'Telegram',
-                    default => htmlspecialchars($pNameRaw ?? 'Unknown'),
-                };
-
                 $pStatusRaw = $platform->getStatus();
-                $pStatus = match ($pStatusRaw) {
-                    'PUBLISHED' => 'Опубликовано ✅',
-                    'CANCELED' => 'Отменено ❌',
-                    'NOT_PUBLISHED' => 'Не опубликовано ⏳',
-                    'RESCHEDULED' => 'Перенесено 🔄',
-                    default => htmlspecialchars($pStatusRaw),
-                };
-                $platformsInfo[] = "  • {$pName}: {$pStatus}";
+                $projectPlans[$projectName][$pNameRaw] = $pStatusRaw;
             }
-            $platformsString = !empty($platformsInfo) ? implode("\n", $platformsInfo) : "  • Платформы не указаны";
-
-            $message .= "📌 <b>Проект:</b> {$projectName}\n";
-            $message .= "👤 <b>Исполнитель:</b> {$executorName}\n";
-            $message .= "📝 <b>Пост:</b> {$post}\n";
-            $message .= "📱 <b>Платформы:</b>\n{$platformsString}\n";
-            $message .= "--------------------------------\n";
         }
 
-        $message .= "🤖";
+        foreach ($projectPlans as $projectName => $platforms) {
+            $message .= "<b>" . htmlspecialchars($projectName) . "</b>\n";
+
+            $platformParts = [];
+            $platformOrder = ['INSTAGRAM', 'TELEGRAM', 'FACEBOOK', 'YOUTUBE'];
+
+            foreach ($platformOrder as $platformKey) {
+                $shortName = match ($platformKey) {
+                    'INSTAGRAM' => 'IG',
+                    'TELEGRAM' => 'TG',
+                    'FACEBOOK' => 'FB',
+                    'YOUTUBE' => 'YouTube',
+                    default => $platformKey,
+                };
+
+                if (isset($platforms[$platformKey])) {
+                    $statusEmoji = match ($platforms[$platformKey]) {
+                        'PUBLISHED' => ' ✅',
+                        'CANCELED' => ' ❌',
+                        'NOT_PUBLISHED' => ' 🔴',
+                        'RESCHEDULED' => ' 🔄',
+                        default => '',
+                    };
+                    $platformParts[] = $shortName . $statusEmoji;
+                } else {
+                    $platformParts[] = $shortName;
+                }
+            }
+
+            $message .= implode(' | ', $platformParts) . "\n\n";
+        }
+
+        $message = rtrim($message);
 
         try {
             $this->sendMessage($this->telegramBotToken, $this->telegramChatId, $message);
@@ -107,6 +113,20 @@ class SendDailyContentPlansCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function getDayOfWeekInUzbek(int $dayNumber): string
+    {
+        return match ($dayNumber) {
+            0 => 'YAKSHANBA',
+            1 => 'DUSHANBA',
+            2 => 'SESHANBA',
+            3 => 'CHORSHANBA',
+            4 => 'PAYSHANBA',
+            5 => 'JUMA',
+            6 => 'SHANBA',
+            default => '',
+        };
     }
 
     private function sendMessage(string $token, string $chatId, string $text): void

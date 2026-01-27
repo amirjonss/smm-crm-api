@@ -7,7 +7,7 @@ parameters:
     tokens_creator.access_expiration_period: '%env(TOKEN_ACCESS_EXPIRATION_PERIOD)%'
     tokens_creator.refresh_expiration_period: '%env(TOKEN_REFRESH_EXPIRATION_PERIOD)%'
     telegram_bot_token: '%env(TELEGRAM_BOT_TOKEN)%'
-    telegram_chat_id: '%env(TELEGRAM_CHAT_ID)%'
+    telegram_chat_id: '%env(csv:TELEGRAM_CHAT_ID)%'
 
 services:
     # default configuration for services in *this* file

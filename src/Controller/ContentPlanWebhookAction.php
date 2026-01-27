@@ -19,21 +19,25 @@ class ContentPlanWebhookAction extends AbstractController
     public function __invoke(KernelInterface $kernel, Request $request): Response
     {
         $data = json_decode($request->getContent(), true);
-        $messageChatId = $data['message']['chat']['id'] ?? '';
-        $telegramChatId = $kernel->getContainer()->getParameter('telegram_chat_id');
+        $chatId = $data['message']['chat']['id'] ?? null;
+        $chatText = $data['message']['text'] ?? null;
+        $allowedCharIds = $kernel->getContainer()->getParameter('telegram_chat_id');
 
-        if ($messageChatId != $telegramChatId) {
+        if ($chatText !== '/report' || (!in_array($chatId, $allowedCharIds))) {
             return new Response('', Response::HTTP_NO_CONTENT);
         }
 
         $application = new Application($kernel);
         $application->setAutoExit(false);
 
-        $input = new ArrayInput(['command' => 'app:send-daily-content-plans']);
+        $input = new ArrayInput([
+            'command' => 'app:send-daily-content-plans',
+            '--chatId' => (string)$chatId,
+        ]);
         $output = new NullOutput();
 
         $application->run($input, $output);
 
-        return new Response('3333', Response::HTTP_NO_CONTENT);
+        return new Response('', Response::HTTP_NO_CONTENT);
     }
 }

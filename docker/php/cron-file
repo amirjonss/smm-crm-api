@@ -5,5 +5,5 @@
 # i  H  d  m  w  user command
 # *  *  *  *  *  root /usr/local/bin/php /var/www/html/bin/console some:symfony:command
 # *  *  *  *  *  root cd /var/www/html/ && docker-compose exec mysql mysqldump -ppass4ask06 ask2 > /root/sites/ask2-$(date +\%Y-\%m-\%d_\%H-\%M\-%S).sql
-  30 19 *  *  *  root /usr/local/bin/php /var/www/html/bin/console app:send-daily-content-plans
-   0 10 *  *  *  root /usr/local/bin/php /var/www/html/bin/console app:send-daily-content-plans
+  30 19 *  *  *  root /usr/local/bin/php /var/www/html/bin/console app:send-daily-content-plans --chatId 666241343
+   0 10 *  *  *  root /usr/local/bin/php /var/www/html/bin/console app:send-daily-content-plans --chatId 666241343

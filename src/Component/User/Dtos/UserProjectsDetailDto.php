@@ -17,7 +17,6 @@ readonly class UserProjectsDetailDto
         private ?string $name = null,
 
         #[Groups(['user:projects:read'])]
-        #[SerializedName('isActive')]
         private bool $isActive = false,
 
         #[Groups(['user:projects:read'])]
@@ -44,7 +43,7 @@ readonly class UserProjectsDetailDto
         return $this->name;
     }
 
-    public function isActive(): bool
+    public function getIsActive(): bool
     {
         return $this->isActive;
     }

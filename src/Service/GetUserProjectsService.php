@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Component\User\Dtos\UserProjectsDetail;
+use App\Component\User\Dtos\UserProjectsDetailDto;
 use App\Component\User\Dtos\UserProjectsDto;
 use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
@@ -27,7 +27,7 @@ readonly class GetUserProjectsService
             $projectsData = [];
 
             foreach ($projects as $project) {
-                $projectsData[] = new UserProjectsDetail(
+                $projectsData[] = new UserProjectsDetailDto(
                     $project->getId(),
                     $project->getName(),
                     $project->isActive(),

@@ -5,8 +5,9 @@ declare(strict_types=1);
 namespace App\Component\User\Dtos;
 
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\SerializedName;
 
-readonly class UserProjectsDetail
+readonly class UserProjectsDetailDto
 {
     public function __construct(
         #[Groups(['user:projects:read'])]
@@ -16,6 +17,7 @@ readonly class UserProjectsDetail
         private ?string $name = null,
 
         #[Groups(['user:projects:read'])]
+        #[SerializedName('isActive')]
         private bool $isActive = false,
 
         #[Groups(['user:projects:read'])]

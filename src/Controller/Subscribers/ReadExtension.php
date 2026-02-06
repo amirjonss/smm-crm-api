@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\Operation;
 use App\Controller\Base\AbstractController;
 use App\Entity\ContentPlan;
 use App\Entity\ContentPlanPlatform;
-use App\Entity\Interfaces\DeletedAtSettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
 use App\Entity\Project;
 use Doctrine\ORM\QueryBuilder;

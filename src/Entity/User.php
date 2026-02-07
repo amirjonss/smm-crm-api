@@ -23,6 +23,7 @@ use App\Controller\UserAuthByRefreshTokenAction;
 use App\Controller\UserChangePasswordAction;
 use App\Controller\UserCreateAction;
 use App\Controller\UserIsUniqueEmailAction;
+use App\Controller\UserProjectsAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\DeletedAtSettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -111,6 +112,20 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['user:changePassword:write']],
             security: "object == user || is_granted('ROLE_ADMIN')",
             name: 'changePassword',
+        ),
+        new Post(
+            uriTemplate: 'users/projects',
+            controller: UserProjectsAction::class,
+            openapi: new Operation(
+                summary: 'Get all users with their projects and content plans count'
+            ),
+            normalizationContext: ['groups' => ['user:projects:read']],
+            denormalizationContext: ['groups' => ['user:projects:write']],
+            security: "is_granted('ROLE_ADMIN')",
+            output: false,
+            read: false,
+            deserialize: false,
+            name: 'userProjects',
         ),
     ],
     normalizationContext: ['groups' => ['user:read', 'users:read']],

@@ -25,7 +25,10 @@ class ContentPlanRepository extends ServiceEntityRepository
         $today = new \DateTime('today');
 
         return $this->createQueryBuilder('c')
+            ->leftJoin('c.project', 'p')
             ->andWhere('c.date = :today')
+            ->andWhere('p.deletedBy IS NULL')
+            ->andWhere('p.isActive = true')
             ->setParameter('today', $today)
             ->orderBy('c.position', 'ASC') // Optional: order by position
             ->getQuery()

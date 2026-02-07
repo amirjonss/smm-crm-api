@@ -38,6 +38,11 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Post(security: "is_granted('ROLE_USER')"),
         new Patch(security: "object.getExecutor() == user"),
+        new Patch(
+            uriTemplate: '/projects/{id}/admin',
+            denormalizationContext: ['groups' => ['admin:write']],
+            security: "is_granted('ROLE_ADMIN')"
+        ),
     ],
     normalizationContext: ['groups' => ['project:read']],
     denormalizationContext: ['groups' => ['project:write']]
@@ -64,7 +69,7 @@ class Project implements
 
     #[ORM\ManyToOne(inversedBy: 'projects')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['project:read', 'content-plan:read'])]
+    #[Groups(['project:read', 'content-plan:read', 'admin:write'])]
     private ?User $executor = null;
 
     #[ORM\Column(length: 255)]
@@ -97,11 +102,35 @@ class Project implements
     #[Groups(['project:read'])]
     private ?User $deletedBy = null;
 
+    #[ORM\Column(options: ['default' => true])]
+    #[Groups(['project:read', 'admin:write'])]
+    private bool $isActive = true;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['admin:write'])]
+    #[Assert\Range(notInRangeMessage: 'Charge day must be between {{ min }} and {{ max }}', min: 1, max: 31)]
+    private ?int $chargeDay = null;
+
+    #[ORM\Column(options: ['default' => 0])]
+    #[Groups(['admin:write'])]
+    #[Assert\PositiveOrZero(message: 'Price must be 0 or positive')]
+    private int $price = 0;
+
     /**
      * @var Collection<int, ContentPlan>
      */
     #[ORM\OneToMany(targetEntity: ContentPlan::class, mappedBy: 'project', orphanRemoval: true)]
     private Collection $contentPlans;
+
+    #[ORM\Column(options: ['default' => 0])]
+    #[Groups(['admin:write'])]
+    #[Assert\PositiveOrZero(message: 'Price must be 0 or positive')]
+    private int $graphicPostCount = 0;
+
+    #[ORM\Column(options: ['default' => 0])]
+    #[Groups(['admin:write'])]
+    #[Assert\PositiveOrZero(message: 'Price must be 0 or positive')]
+    private int $videoPostCount = 0;
 
     public function __construct()
     {
@@ -209,6 +238,42 @@ class Project implements
         return $this;
     }
 
+    public function isActive(): bool
+    {
+        return $this->isActive;
+    }
+
+    public function setIsActive(bool $isActive): static
+    {
+        $this->isActive = $isActive;
+
+        return $this;
+    }
+
+    public function getChargeDay(): ?int
+    {
+        return $this->chargeDay;
+    }
+
+    public function setChargeDay(?int $chargeDay): static
+    {
+        $this->chargeDay = $chargeDay;
+
+        return $this;
+    }
+
+    public function getPrice(): int
+    {
+        return $this->price;
+    }
+
+    public function setPrice(int $price): static
+    {
+        $this->price = $price;
+
+        return $this;
+    }
+
     /**
      * @return Collection<int, ContentPlan>
      */
@@ -235,6 +300,30 @@ class Project implements
                 $contentPlan->setProject(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getGraphicPostCount(): int
+    {
+        return $this->graphicPostCount;
+    }
+
+    public function setGraphicPostCount(int $graphicPostCount): static
+    {
+        $this->graphicPostCount = $graphicPostCount;
+
+        return $this;
+    }
+
+    public function getVideoPostCount(): int
+    {
+        return $this->videoPostCount;
+    }
+
+    public function setVideoPostCount(int $videoPostCount): static
+    {
+        $this->videoPostCount = $videoPostCount;
 
         return $this;
     }

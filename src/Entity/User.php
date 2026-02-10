@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
+use App\Component\User\Enum\Roles;
 use App\Component\User\Dtos\RefreshTokenRequestDto;
 use App\Component\User\Dtos\TokensDto;
 use App\Controller\DeleteAction;
@@ -135,7 +136,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'createdAt', 'updatedAt', 'email'])]
-#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial'])]
+#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial', 'roles' => 'partial'])]
 //#[UniqueEntity('email', message: 'This email is already used')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements
@@ -169,7 +170,9 @@ class User implements
     private ?string $password = null;
 
     #[ORM\Column(type: 'array')]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'user:write', 'user:put:write'])]
+    #[Assert\Count(exactly: 1, exactMessage: 'Please select exactly one role')]
+    #[Assert\All([new Assert\Choice(callback: [Roles::class, 'getList'], message: 'Please select a valid role')])]
     private array $roles = [];
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
@@ -229,7 +232,6 @@ class User implements
     public function getRoles(): array
     {
         $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }

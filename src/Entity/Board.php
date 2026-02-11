@@ -29,11 +29,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: BoardRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(security: "is_granted('ROLE_USER')"),
-        new Patch(),
-        new Delete(),
+        new Get(security: "is_granted('ROLE_USER')"),
+        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('ROLE_ADMIN')"),
+        new Patch(security: "is_granted('ROLE_USER')"),
+        new Delete(security: "is_granted('ROLE_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['board:read']],
     denormalizationContext: ['groups' => ['board:write']],
@@ -85,14 +85,9 @@ class Board implements
     #[Groups(['board:read'])]
     private Collection $lists;
 
-    /** @var Collection<int, BoardMember> */
-    #[ORM\OneToMany(targetEntity: BoardMember::class, mappedBy: 'board', orphanRemoval: true)]
-    private Collection $members;
-
     public function __construct()
     {
         $this->lists = new ArrayCollection();
-        $this->members = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -199,30 +194,4 @@ class Board implements
         return $this;
     }
 
-    /** @return Collection<int, BoardMember> */
-    public function getMembers(): Collection
-    {
-        return $this->members;
-    }
-
-    public function addMember(BoardMember $member): static
-    {
-        if (!$this->members->contains($member)) {
-            $this->members->add($member);
-            $member->setBoard($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMember(BoardMember $member): static
-    {
-        if ($this->members->removeElement($member)) {
-            if ($member->getBoard() === $this) {
-                $member->setBoard(null);
-            }
-        }
-
-        return $this;
-    }
 }

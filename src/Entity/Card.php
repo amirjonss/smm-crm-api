@@ -32,11 +32,17 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CardRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
-        new Post(security: "is_granted('ROLE_USER')"),
-        new Patch(),
-        new Delete(),
+        new Get(security: "is_granted('ROLE_USER')"),
+        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
+        new Patch(security: "is_granted('ROLE_USER')"),
+        new Patch(
+            uriTemplate: '/cards/{id}/executors',
+            denormalizationContext: ['groups' => ['card-executor:write']],
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
+            name: 'cardExecutors',
+        ),
+        new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
     ],
     normalizationContext: ['groups' => ['card:read']],
     denormalizationContext: ['groups' => ['card:write']],
@@ -108,7 +114,7 @@ class Card implements
     #[ORM\JoinTable(name: 'card_executor')]
     #[ORM\JoinColumn(name: 'card_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
     #[ORM\InverseJoinColumn(name: 'executor_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    #[Groups(['card:read', 'card:write'])]
+    #[Groups(['card:read', 'card-executor:write'])]
     private Collection $executors;
 
     /** @var Collection<int, CardLog> */

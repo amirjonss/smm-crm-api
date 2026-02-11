@@ -9,6 +9,8 @@ use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use App\Controller\Base\AbstractController;
+use App\Entity\Board;
+use App\Entity\BoardList;
 use App\Entity\ContentPlan;
 use App\Entity\ContentPlanPlatform;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -80,7 +82,11 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
             case ContentPlan::class:
             case ContentPlanPlatform::class:
             case Project::class:
+            case Board::class:
                 $this->addUser($queryBuilder, $rootTable);
+                break;
+            case BoardList::class:
+                $this->joinEntityAndAddUser($queryBuilder, $rootTable, 'board');
                 break;
         }
     }

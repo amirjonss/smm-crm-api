@@ -13,4 +13,14 @@ enum CardStatus: string
     {
         return array_column(self::cases(), 'value');
     }
+
+    public static function getStatusRuByStatus(CardStatus $status): string
+    {
+        return match ($status) {
+            self::OPEN => 'Открыто',
+            self::IN_PROGRESS => 'В процессе',
+            self::REVIEW => 'На проверке',
+            self::DONE => 'Выполнено',
+        };
+    }
 }

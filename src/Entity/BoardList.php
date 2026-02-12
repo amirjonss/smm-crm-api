@@ -34,7 +34,10 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(),
         new GetCollection(),
         new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
-        new Patch(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
+        new Patch(
+            denormalizationContext: ['groups' => ['board-list:put:write']],
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"
+        ),
         new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
     ],
     normalizationContext: ['groups' => ['board-list:read']],
@@ -57,26 +60,26 @@ class BoardList implements
 
     #[ORM\ManyToOne(targetEntity: Board::class, inversedBy: 'lists')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['board-list:read', 'board-list:write'])]
+    #[Groups(['board-list:read', 'board-list:write', 'board-list:put:write'])]
     #[Assert\NotNull]
     private ?Board $board = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['board-list:read', 'board-list:write', 'board:read'])]
+    #[Groups(['board-list:read', 'board-list:write', 'board:read', 'board-list:put:write'])]
     #[Assert\NotBlank]
     private ?string $name = null;
 
     #[ORM\Column(options: ['default' => false])]
-    #[Groups(['board-list:read', 'board-list:write', 'board:read'])]
+    #[Groups(['board-list:read', 'board-list:write', 'board:read', 'board-list:put:write'])]
     private bool $isArchived = false;
 
     #[ORM\Column(length: 32)]
-    #[Groups(['board-list:read', 'board-list:write', 'board:read'])]
+    #[Groups(['board-list:read', 'board-list:write', 'board:read', 'board-list:put:write'])]
     #[Assert\NotBlank]
     private ?string $color = null;
 
     #[ORM\Column(type: Types::INTEGER)]
-    #[Groups(['board-list:read', 'board-list:write', 'board:read'])]
+    #[Groups(['board-list:read', 'board-list:write', 'board:read', 'board-list:put:write'])]
     #[Assert\NotNull]
     private int $position = 0;
 

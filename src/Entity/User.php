@@ -207,9 +207,16 @@ class User implements
     #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
     private ?string $familyName = null;
 
+    /**
+     * @var Collection<int, Card>
+     */
+    #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'executor')]
+    private Collection $cards;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
+        $this->cards = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -348,6 +355,33 @@ class User implements
     public function setFamilyName(?string $familyName): static
     {
         $this->familyName = $familyName;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Card>
+     */
+    public function getCards(): Collection
+    {
+        return $this->cards;
+    }
+
+    public function addCard(Card $card): static
+    {
+        if (!$this->cards->contains($card)) {
+            $this->cards->add($card);
+            $card->addExecutor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCard(Card $card): static
+    {
+        if ($this->cards->removeElement($card)) {
+            $card->removeExecutor($this);
+        }
 
         return $this;
     }

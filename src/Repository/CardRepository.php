@@ -15,4 +15,12 @@ class CardRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Card::class);
     }
+
+    public function findMaxCardPositionNumber(): int
+    {
+        return $this->createQueryBuilder('c')
+            ->select('MAX(c.position)')
+            ->getQuery()
+            ->getSingleScalarResult() ?? 0;
+    }
 }

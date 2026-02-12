@@ -4,99 +4,96 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a CRM API for managing content plans, built with Symfony 7.3, API Platform 4.1, and Doctrine ORM. It uses JWT authentication via Lexik JWT bundle and runs in Docker containers (PHP, Nginx, MariaDB, Redis).
+CRM API for managing Trello-style boards/cards and content plans. Built with Symfony 7.3, API Platform 4.1, Doctrine ORM 3.3, JWT auth (Lexik). Runs in Docker (PHP, Nginx, MariaDB 11.7, Redis).
 
 ## Common Commands
 
-All commands run inside the PHP Docker container:
+All commands run inside the PHP container (`docker compose exec php <command>`):
 
 ```bash
-# Enter PHP container
-docker compose exec php bash
-
-# Install project (first time setup - waits for DB, runs migrations, generates JWT keys)
-docker compose exec php bin/console ask:install
-
-# Deploy (after git pull - runs migrations, clears cache)
-docker compose exec php bin/console ask:deploy
-
-# Run database migrations
-docker compose exec php bin/console doctrine:migrations:migrate
-
-# Generate a migration after entity changes
-docker compose exec php bin/console doctrine:migrations:diff
-
-# Create a new entity
-docker compose exec php bin/console make:entity
-
-# Clear cache
-docker compose exec php bin/console cache:clear
-
-# Create a user
-docker compose exec php bin/console ask:user:create
-
-# Manage user roles
-docker compose exec php bin/console ask:roles:add
-docker compose exec php bin/console ask:roles:delete
-docker compose exec php bin/console ask:roles:show
+bin/console ask:install                    # First-time setup (waits for DB, migrations, JWT keys)
+bin/console ask:deploy                     # Post-deploy (migrations + cache clear)
+bin/console doctrine:migrations:diff       # Generate migration after entity changes
+bin/console doctrine:migrations:migrate    # Run migrations
+bin/console cache:clear
+bin/console ask:create-user                # Interactive user creation
+bin/console seed:database                  # Seed test data
 ```
+
+API docs: `http://localhost:8507/api` (Swagger UI, port via `DOCKER_NGINX_PORT`)
 
 ## Architecture
 
-### Entity Patterns
+### Entity Lifecycle — Interface + Trait Pattern
 
-Entities use interface-based traits for automatic timestamp and user tracking:
-- `CreatedAtSettableInterface` / `CreatedAtAccessorsTrait` - auto-sets `createdAt` on persist
-- `UpdatedAtSettableInterface` / `UpdatedAtAccessorsTrait` - auto-sets `updatedAt` on update
-- `CreatedBySettableInterface` / `CreatedByAccessorsTrait` - auto-sets `createdBy` to current user
-- `UpdatedBySettableInterface` / `UpdatedByAccessorsTrait` - auto-sets `updatedBy` to current user
-- `DeletedBySettableInterface` / `DeletedByAccessorsTrait` - for soft deletes (marks user who deleted)
-- `DeletedAtSettableInterface` / `DeletedAtAccessorsTrait` - for soft delete timestamps
+Entities implement settable interfaces; `WriteSubscriber` (PRE_WRITE) auto-fills fields:
 
-Combined traits available: `CreatedUpdatedDeletedAtAndByTrait` includes all tracking fields.
+- `CreatedAtSettableInterface` / `CreatedAtAccessorsTrait` — set on POST
+- `CreatedBySettableInterface` / `CreatedByAccessorsTrait` — set on POST (current user)
+- `UpdatedAtSettableInterface` / `UpdatedAtAccessorsTrait` — set on PATCH
+- `UpdatedBySettableInterface` / `UpdatedByAccessorsTrait` — set on PATCH (current user)
+- `DeletedAtSettableInterface` / `DeletedAtAccessorsTrait` — set by `DeleteAction`
+- `DeletedBySettableInterface` / `DeletedByAccessorsTrait` — set by `DeleteAction`
 
-### API Platform Integration
+Shortcut: `CreatedUpdatedDeletedAtAndByTrait` combines all six.
 
-- Entities are API resources via `#[ApiResource]` attributes with operations defined inline
-- Custom controllers go in `src/Controller/` and are referenced in operation attributes
-- Serialization groups control field visibility (e.g., `user:read`, `user:write`, `project:read`)
+### Soft Delete
 
-### Key Subscribers (Event Listeners)
+Entities are never physically deleted. `DeleteAction` (`src/Controller/DeleteAction.php`) uses `MarkEntityAsDeleted` to set `deletedBy`/`deletedAt`. `ReadExtension` (Doctrine query extension) auto-filters `deletedBy IS NOT NULL` from all queries. Non-admin users additionally see only entities where `createdBy = current user`.
 
-**WriteSubscriber** (`src/Controller/Subscribers/WriteSubscriber.php`):
-- Runs on PRE_WRITE for POST/PATCH requests
-- Auto-sets `createdAt`, `createdBy`, `updatedAt`, `updatedBy` based on entity interfaces
-- Sets `executor` on Project entities to current user
+### Key Subscribers
 
-**ReadExtension** (`src/Controller/Subscribers/ReadExtension.php`):
-- Doctrine ORM query extension applied to all collection and item operations
-- Hides soft-deleted entities (where `deletedBy` is not null)
-- Filters entities by `createdBy` for non-admin users (ContentPlan, Project)
-- Admins bypass owner filtering
+- **WriteSubscriber** (`src/Controller/Subscribers/WriteSubscriber.php`) — PRE_WRITE: auto-sets timestamp/user tracking fields on POST and PATCH
+- **ReadExtension** (`src/Controller/Subscribers/ReadExtension.php`) — Doctrine query extension: soft-delete filtering + owner-based access control (admins bypass)
+- **CardRenameSubscriber** (`src/Controller/Subscribers/CardRenameSubscriber.php`) — POST_WRITE on Card PATCH: detects field changes (rename, move, deadline, archive/unarchive) and dispatches corresponding events
 
-### Soft Delete Pattern
+### Card Event System
 
-Entities are not physically deleted. The `DeleteAction` controller marks entities as deleted by setting `deletedBy` to the current user. The `ReadExtension` automatically filters out soft-deleted entities.
+Events (`src/Event/Card/`) dispatched by `CardRenameSubscriber` and `CreateCardAction`. Each event has a listener (`src/EventListener/Card/`) that creates a `CardLog` entry via `CardLogFactory` + `CardLogManager`. Provides full audit trail: `CardCreatedEvent`, `CardRenamedEvent`, `CardMovedEvent`, `CardSetDeadlineEvent`, `CardChangedDeadlineEvent`, `CardDeleteDeadlineEvent`, `CardArchivedEvent`, `CardUnarchivedEvent`.
 
-### Authentication
+### Component Layer (`src/Component/`)
 
-- JWT-based authentication using Lexik JWT bundle
-- Token endpoints: `POST /api/users/auth` (login), `POST /api/users/auth/refreshToken`
-- Token expiration configured via `TOKEN_ACCESS_EXPIRATION_PERIOD` and `TOKEN_REFRESH_EXPIRATION_PERIOD` env vars
-- User provider uses email for lookup
+Business logic organized by domain:
+- **Core/** — `AbstractManager` (base entity persistence with flush), `MarkEntityAsDeleted`, `SlugGenerator`
+- **User/** — `UserFactory`, `UserManager` (password hashing), `TokensCreator` (JWT), `CurrentUser`, roles enum, DTOs
+- **CardLog/** — `CardLogFactory`, `CardLogManager`
+- **Board/** — `CardStatus` enum (`open`, `in_progress`, `review`, `done`)
+
+### Base Controller
+
+`AbstractController` (`src/Controller/Base/AbstractController.php`) provides: `response()`, `responseEmpty()`, `getDtoFromRequest()`, `getUser()`, `getJwtUser()`, `validate()`, `findEntityOrError()`. All custom action controllers extend this.
 
 ### Domain Entities
 
-- **User**: Authentication, roles (ROLE_USER, ROLE_ADMIN), owns Projects
-- **Project**: Belongs to executor (User), contains ContentPlans
-- **ContentPlan**: Content scheduling with format (Reels, Carousel, Post, Animation, Story), position ordering
+- **User** → owns Projects (executor), assigned to Cards (executors ManyToMany)
+- **Project** → belongs to User, contains ContentPlans
+- **Board** → contains BoardLists (ordered by position)
+- **BoardList** → belongs to Board, contains Cards (ordered by position)
+- **Card** → belongs to BoardList, has CardLogs (audit) and executors (Users), status enum, deadline, archive flag
+- **CardLog** → belongs to Card, read-only audit log created by event listeners
+- **ContentPlan** → belongs to Project, has ContentPlanPlatforms (YouTube, Instagram, Facebook, Telegram)
+
+### Roles
+
+Defined in `Component/User/Enum/Roles`: `ROLE_SMM`, `ROLE_EDITOR`, `ROLE_DESIGNER`, `ROLE_OPERATOR`, `ROLE_ADMIN`, `ROLE_USER`. Board/Card operations require ADMIN or SMM. User management requires ADMIN.
+
+### Authentication
+
+JWT via Lexik bundle. `POST /api/users/auth` (login), `POST /api/users/auth/refreshToken`. Token expiry via `TOKEN_ACCESS_EXPIRATION_PERIOD` / `TOKEN_REFRESH_EXPIRATION_PERIOD` env vars. Main firewall is stateless JWT for `/api/.+`.
+
+### API Platform Conventions
+
+- Entities as `#[ApiResource]` with inline operations and `#[ApiFilter]` (Order, Search, Boolean, Date)
+- Serialization groups per operation (e.g., `card:read`, `card:write`, `card:post:write`)
+- Sub-resource URIs via `uriTemplate` + `uriVariables` with `Link` (e.g., `/cards/{cardId}/executors`)
+- Format: JSON-LD primary, multipart supported
 
 ## Environment
 
-- Database: MariaDB 11.7 (port configured via `DOCKER_DATABASE_PORT`)
-- Web server: Nginx (port configured via `DOCKER_NGINX_PORT`, default 8507)
-- API documentation: `http://localhost:8507/api` (Swagger UI)
-- Messenger transport: Redis for async message handling
+- Docker services: php, nginx (port 8507), db (MariaDB), redis, mailer (Mailpit)
+- Optional profiles: `backup` (DB backup to Telegram), `telegram-bot-api`
+- Cron jobs: `docker/php/cron-file` (rebuild php container after changes)
 
 ## Rules
+
 - Always use Context7 MCP when I need library/API documentation, code generation, setup or configuration steps without me having to explicitly ask.

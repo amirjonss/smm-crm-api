@@ -16,6 +16,10 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Component\Board\Enum\CardStatus;
+use App\Component\Card\Dtos\CardExecutorDto;
+use App\Controller\CardAddExecutorAction;
+use App\Controller\CardCreateAction;
+use App\Controller\CardDeleteExecutorAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\UpdatedAtSettableInterface;
@@ -34,21 +38,39 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(),
         new GetCollection(),
-        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
-        new Patch(),
-        new Patch(
-            uriTemplate: '/cards/{id}/executors',
-            denormalizationContext: ['groups' => ['card-executor:write']],
+        new Post(
+            controller: CardCreateAction::class,
+            denormalizationContext: ['groups' => ['card:post:write']],
             security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
-            name: 'cardExecutors',
         ),
+        new Post(
+            uriTemplate: '/cards/{id}/executor',
+            controller: CardAddExecutorAction::class,
+            denormalizationContext: ['groups' => ['card:executor:write']],
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
+            input: CardExecutorDto::class,
+        ),
+        new Post(
+            uriTemplate: '/cards/{id}/executor-delete',
+            controller: CardDeleteExecutorAction::class,
+            denormalizationContext: ['groups' => ['card:executor:write']],
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
+            input: CardExecutorDto::class,
+            read: false
+        ),
+        new Patch(),
         new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
     ],
     normalizationContext: ['groups' => ['card:read']],
     denormalizationContext: ['groups' => ['card:write']],
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'position', 'createdAt', 'deadline'])]
-#[ApiFilter(SearchFilter::class, properties: ['list.id' => 'exact', 'list.board.id' => 'exact', 'name' => 'partial', 'status' => 'exact'])]
+#[ApiFilter(SearchFilter::class, properties: [
+    'list.id' => 'exact',
+    'list.board.id' => 'exact',
+    'name' => 'partial',
+    'status' => 'exact'
+])]
 #[ApiFilter(BooleanFilter::class, properties: ['isArchived'])]
 #[ApiFilter(DateFilter::class, properties: ['deadline'])]
 class Card implements
@@ -65,12 +87,12 @@ class Card implements
 
     #[ORM\ManyToOne(targetEntity: BoardList::class, inversedBy: 'cards')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['card:read', 'card:write'])]
+    #[Groups(['card:read', 'card:write', 'card:post:write'])]
     #[Assert\NotNull]
     private ?BoardList $list = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['card:read', 'card:write', 'board-list:read'])]
+    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:post:write'])]
     #[Assert\NotBlank]
     private ?string $name = null;
 
@@ -109,23 +131,21 @@ class Card implements
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?User $updatedBy = null;
 
-    /** @var Collection<int, User> */
-    #[ORM\ManyToMany(targetEntity: User::class)]
-    #[ORM\JoinTable(name: 'card_executor')]
-    #[ORM\JoinColumn(name: 'card_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    #[ORM\InverseJoinColumn(name: 'executor_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    #[Groups(['card:read', 'card-executor:write'])]
-    private Collection $executors;
-
     /** @var Collection<int, CardLog> */
     #[ORM\OneToMany(targetEntity: CardLog::class, mappedBy: 'card', orphanRemoval: true)]
     #[ORM\OrderBy(['createdAt' => 'DESC'])]
     private Collection $logs;
 
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'cards')]
+    private Collection $executor;
+
     public function __construct()
     {
-        $this->executors = new ArrayCollection();
         $this->logs = new ArrayCollection();
+        $this->executor = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -253,28 +273,6 @@ class Card implements
         return $this;
     }
 
-    /** @return Collection<int, User> */
-    public function getExecutors(): Collection
-    {
-        return $this->executors;
-    }
-
-    public function addExecutor(User $executor): static
-    {
-        if (!$this->executors->contains($executor)) {
-            $this->executors->add($executor);
-        }
-
-        return $this;
-    }
-
-    public function removeExecutor(User $executor): static
-    {
-        $this->executors->removeElement($executor);
-
-        return $this;
-    }
-
     /** @return Collection<int, CardLog> */
     public function getLogs(): Collection
     {
@@ -298,6 +296,30 @@ class Card implements
                 $log->setCard(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getExecutor(): Collection
+    {
+        return $this->executor;
+    }
+
+    public function addExecutor(User $executor): static
+    {
+        if (!$this->executor->contains($executor)) {
+            $this->executor->add($executor);
+        }
+
+        return $this;
+    }
+
+    public function removeExecutor(User $executor): static
+    {
+        $this->executor->removeElement($executor);
 
         return $this;
     }

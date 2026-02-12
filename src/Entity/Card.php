@@ -32,10 +32,10 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CardRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(security: "is_granted('ROLE_USER')"),
-        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Get(),
+        new GetCollection(),
         new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
-        new Patch(security: "is_granted('ROLE_USER')"),
+        new Patch(),
         new Patch(
             uriTemplate: '/cards/{id}/executors',
             denormalizationContext: ['groups' => ['card-executor:write']],

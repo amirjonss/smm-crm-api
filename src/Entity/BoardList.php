@@ -31,8 +31,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'board_list')]
 #[ApiResource(
     operations: [
-        new Get(security: "is_granted('ROLE_USER')"),
-        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Get(),
+        new GetCollection(),
         new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
         new Patch(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
         new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),

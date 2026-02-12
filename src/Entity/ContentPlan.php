@@ -39,9 +39,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             controller: DeleteAction::class,
             security: "object.getProject().getExecutor() == user"
         ),
-        new Post(
-            security: "is_granted('ROLE_USER')"
-        ),
+        new Post(),
         new Patch(
             security: "object.getProject().getExecutor() == user"
         ),
@@ -119,7 +117,10 @@ class ContentPlan implements
     #[Groups(['content-plan:read', 'content-plan:write'])]
     private int $position = 0;
 
-    #[ORM\ManyToMany(targetEntity: ContentPlanPlatform::class, inversedBy: 'contentPlans', cascade: ['persist', 'remove'])]
+    #[ORM\ManyToMany(targetEntity: ContentPlanPlatform::class, inversedBy: 'contentPlans', cascade: [
+        'persist',
+        'remove'
+    ])]
     #[Groups(['content-plan:read', 'content-plan:write'])]
     private Collection $platforms;
 

@@ -23,8 +23,8 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CardLogRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(security: "is_granted('ROLE_USER')"),
-        new GetCollection(security: "is_granted('ROLE_USER')"),
+        new Get(),
+        new GetCollection(),
     ],
     normalizationContext: ['groups' => ['card-log:read']],
     denormalizationContext: ['groups' => ['card-log:write']],

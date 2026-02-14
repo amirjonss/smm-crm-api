@@ -21,9 +21,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(
             security: "is_granted('ROLE_ADMIN') or object.getCreatedBy() == user"
         ),
-        new GetCollection(
-            security: "is_granted('ROLE_USER')"
-        ),
+        new GetCollection(),
     ],
     normalizationContext: ['groups' => ['content-plan-platform:read']],
     denormalizationContext: ['groups' => ['content-plan-platform:write']]

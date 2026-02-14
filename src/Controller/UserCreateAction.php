@@ -54,7 +54,8 @@ class UserCreateAction extends AbstractController
             $data->getEmail(),
             $data->getPassword(),
             $data->getGivenName(),
-            $data->getFamilyName()
+            $data->getFamilyName(),
+            $data->getRoles()
         );
         $userManager->save($user, true);
 

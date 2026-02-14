@@ -14,7 +14,7 @@ class UserFactory
     {
     }
 
-    public function create(string $email, string $password, string $givenName, ?string $familyName = null): User
+    public function create(string $email, string $password, string $givenName, ?string $familyName = null, array $roles = []): User
     {
         $user = new User();
         $user->setEmail($email);
@@ -24,6 +24,10 @@ class UserFactory
 
         if ($familyName !== null) {
             $user->setFamilyName($familyName);
+        }
+
+        if (!empty($roles)) {
+            $user->setRoles($roles);
         }
 
         return $user;

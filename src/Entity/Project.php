@@ -36,7 +36,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             controller: DeleteAction::class,
             security: "object.getExecutor() == user"
         ),
-        new Post(security: "is_granted('ROLE_USER')"),
+        new Post(),
         new Patch(security: "object.getExecutor() == user"),
         new Patch(
             uriTemplate: '/projects/{id}/admin',

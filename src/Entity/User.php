@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
+use App\Component\User\Enum\Roles;
 use App\Component\User\Dtos\RefreshTokenRequestDto;
 use App\Component\User\Dtos\TokensDto;
 use App\Controller\DeleteAction;
@@ -135,7 +136,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'createdAt', 'updatedAt', 'email'])]
-#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial'])]
+#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial', 'roles' => 'partial'])]
 //#[UniqueEntity('email', message: 'This email is already used')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 class User implements
@@ -155,7 +156,7 @@ class User implements
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['users:read'])]
+    #[Groups(['users:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -169,7 +170,9 @@ class User implements
     private ?string $password = null;
 
     #[ORM\Column(type: 'array')]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'user:write', 'user:put:write'])]
+    #[Assert\Count(exactly: 1, exactMessage: 'Please select exactly one role')]
+    #[Assert\All([new Assert\Choice(callback: [Roles::class, 'getList'], message: 'Please select a valid role')])]
     private array $roles = [];
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
@@ -197,16 +200,23 @@ class User implements
     private Collection $projects;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?string $givenName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?string $familyName = null;
+
+    /**
+     * @var Collection<int, Card>
+     */
+    #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'executor')]
+    private Collection $cards;
 
     public function __construct()
     {
         $this->projects = new ArrayCollection();
+        $this->cards = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -229,7 +239,6 @@ class User implements
     public function getRoles(): array
     {
         $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
@@ -346,6 +355,33 @@ class User implements
     public function setFamilyName(?string $familyName): static
     {
         $this->familyName = $familyName;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Card>
+     */
+    public function getCards(): Collection
+    {
+        return $this->cards;
+    }
+
+    public function addCard(Card $card): static
+    {
+        if (!$this->cards->contains($card)) {
+            $this->cards->add($card);
+            $card->addExecutor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCard(Card $card): static
+    {
+        if ($this->cards->removeElement($card)) {
+            $card->removeExecutor($this);
+        }
 
         return $this;
     }

@@ -18,13 +18,13 @@ class CardChangedDeadlineListener
 
     public function __invoke(CardChangedDeadlineEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
-        $description = 'Пользователь ' . $userName . ' изменил дедлайн с ' . $event->getOldCard()->getDeadline(
-            )->format(
-                'd.m.Y'
-            ) . ' на ' . $event->getNewCard()->getDeadline()->format('d.m.Y');
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
+        $oldDate = $event->getOldCard()->getDeadline()->format('d.m.Y');
+        $newDate = $event->getNewCard()->getDeadline()->format('d.m.Y');
+        $description = $userName . ' изменил(а) срок с ' . $oldDate . ' на ' . $newDate;
         $cardLog = $this->cardLogFactory->create($event->getNewCard(), $description);
-        $cardLog->setCreatedBy($event->getUser());
+        $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
     }

@@ -156,7 +156,7 @@ class User implements
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['users:read'])]
+    #[Groups(['users:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -200,11 +200,11 @@ class User implements
     private Collection $projects;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?string $givenName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?string $familyName = null;
 
     /**

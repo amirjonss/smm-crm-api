@@ -9,7 +9,7 @@ use App\Component\User\Enum\Roles;
 use App\Entity\User;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
-class CardChangeStatusValidationValidator
+class CardChangeStatusValidator
 {
     public function validate(CardStatus $newStatus, User $user): void
     {

@@ -17,15 +17,17 @@ class CardSetPositionService
     ) {
     }
 
-    public function setPositionCard(Card $card, ?Card $prevCard, ?Card $nextCard): void
+    public function setPositionCard(Card $card, ?Card $prevCard, ?Card $nextCard, ?BoardList $targetList = null): void
     {
-        $this->validateNeighbors($card, $prevCard, $nextCard);
+        $targetList = $this->resolveTargetList($card, $prevCard, $nextCard, $targetList);
+        $this->validateNeighbors($card, $targetList, $prevCard, $nextCard);
 
         $this->entityManager->beginTransaction();
 
         try {
-            $newPosition = $this->calculatePosition($card, $prevCard, $nextCard);
+            $newPosition = $this->calculatePosition($card, $targetList, $prevCard, $nextCard);
 
+            $card->setList($targetList);
             $card->setPosition($newPosition);
             $this->entityManager->persist($card);
             $this->entityManager->flush();
@@ -36,10 +38,65 @@ class CardSetPositionService
         }
     }
 
-    public function calculatePosition(Card $card, ?Card $prevCard, ?Card $nextCard): int
+    private function resolveTargetList(Card $card, ?Card $prevCard, ?Card $nextCard, ?BoardList $targetList): BoardList
+    {
+        if ($prevCard !== null) {
+            $resolved = $prevCard->getList();
+        } elseif ($nextCard !== null) {
+            $resolved = $nextCard->getList();
+        } elseif ($targetList !== null) {
+            $resolved = $targetList;
+        } else {
+            $resolved = $card->getList();
+        }
+
+        if ($resolved === null) {
+            throw new \InvalidArgumentException('Cannot determine target list.');
+        }
+
+        if ($targetList !== null && $resolved->getId() !== $targetList->getId()) {
+            throw new \InvalidArgumentException('targetList conflicts with the list of prevCard/nextCard.');
+        }
+
+        return $resolved;
+    }
+
+    private function validateNeighbors(Card $card, BoardList $targetList, ?Card $prevCard, ?Card $nextCard): void
+    {
+        if ($prevCard !== null && $prevCard->getList()?->getId() !== $targetList->getId()) {
+            throw new \InvalidArgumentException('prevCard does not belong to the target list.');
+        }
+
+        if ($nextCard !== null && $nextCard->getList()?->getId() !== $targetList->getId()) {
+            throw new \InvalidArgumentException('nextCard does not belong to the target list.');
+        }
+
+        if ($prevCard !== null && $nextCard !== null && $prevCard->getPosition() >= $nextCard->getPosition()) {
+            throw new \InvalidArgumentException('prevCard must have a lower position than nextCard.');
+        }
+
+        if ($prevCard !== null && $nextCard !== null) {
+            $countBetween = $this->cardRepository->countCardsBetweenPositions(
+                $targetList,
+                $prevCard->getPosition(),
+                $nextCard->getPosition(),
+                $card,
+            );
+
+            if ($countBetween > 0) {
+                throw new \InvalidArgumentException(
+                    'prevCard and nextCard are not adjacent — there are cards between them.'
+                );
+            }
+        }
+    }
+
+    public function calculatePosition(Card $card, BoardList $targetList, ?Card $prevCard, ?Card $nextCard): int
     {
         if ($prevCard === null && $nextCard === null) {
-            return 0;
+            $lastCard = $this->cardRepository->findCardByLastPositionInList($targetList, $card);
+
+            return $lastCard !== null ? $lastCard->getPosition() + self::POSITION_GAP : self::POSITION_GAP;
         }
 
         if ($nextCard === null) {
@@ -50,8 +107,9 @@ class CardSetPositionService
             $nextPos = $nextCard->getPosition();
 
             if ($nextPos <= 1) {
-                $this->reindexCardsPosition($card->getList());
-                $nextPos = $this->cardRepository->findMinCardPositionNumberInList($card->getList());
+                $this->reindexCardsPosition($targetList);
+                $this->entityManager->refresh($nextCard);
+                $nextPos = $nextCard->getPosition();
             }
 
             return intdiv($nextPos, 2);
@@ -61,7 +119,7 @@ class CardSetPositionService
         $nextPos = $nextCard->getPosition();
 
         if (($nextPos - $prevPos) <= 1) {
-            $this->reindexCardsPosition($card->getList());
+            $this->reindexCardsPosition($targetList);
             $this->entityManager->refresh($prevCard);
             $this->entityManager->refresh($nextCard);
             $prevPos = $prevCard->getPosition();
@@ -83,34 +141,5 @@ class CardSetPositionService
         }
 
         $this->entityManager->flush();
-    }
-
-    private function validateNeighbors(Card $card, ?Card $prevCard, ?Card $nextCard): void
-    {
-        $boardList = $card->getList();
-
-        if ($prevCard !== null && $prevCard->getList()?->getId() !== $boardList?->getId()) {
-            throw new \InvalidArgumentException('prevCard does not belong to the same list.');
-        }
-
-        if ($nextCard !== null && $nextCard->getList()?->getId() !== $boardList?->getId()) {
-            throw new \InvalidArgumentException('nextCard does not belong to the same list.');
-        }
-
-        if ($prevCard !== null && $nextCard !== null && $prevCard->getPosition() >= $nextCard->getPosition()) {
-            throw new \InvalidArgumentException('prevCard must have a lower position than nextCard.');
-        }
-
-        if ($prevCard !== null && $nextCard !== null) {
-            $countBetween = $this->cardRepository->countCardsBetweenPositions(
-                $boardList,
-                $prevCard->getPosition(),
-                $nextCard->getPosition(),
-            );
-
-            if ($countBetween > 0) {
-                throw new \InvalidArgumentException('prevCard and nextCard are not adjacent — there are cards between them.');
-            }
-        }
     }
 }

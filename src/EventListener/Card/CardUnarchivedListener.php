@@ -18,10 +18,11 @@ class CardUnarchivedListener
 
     public function __invoke(CardUnarchivedEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
-        $description = 'Пользователь ' . $userName . ' восстоновил карточку';
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
+        $description = $userName . ' восстановил(а) эту карточку из архива';
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
-        $cardLog->setCreatedBy($event->getUser());
+        $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
     }

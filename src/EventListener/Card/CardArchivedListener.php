@@ -18,10 +18,11 @@ class CardArchivedListener
 
     public function __invoke(CardArchivedEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
-        $description = 'Пользователь ' . $userName . ' архивировал карточку';
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
+        $description = $userName . ' архивировал(а) эту карточку';
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
-        $cardLog->setCreatedBy($event->getUser());
+        $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
     }

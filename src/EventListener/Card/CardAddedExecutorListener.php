@@ -18,11 +18,12 @@ class CardAddedExecutorListener
 
     public function __invoke(CardAddedExecutorEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
         $executorName = $event->getExecutor()->getGivenName() . ' ' . $event->getExecutor()->getFamilyName();
-        $description = 'Пользователь ' . $userName . ' добавил исполнителя ' . $executorName . ' на карточку';
+        $description = $userName . ' добавил(а) участника ' . $executorName . ' на эту карточку';
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
-        $cardLog->setCreatedBy($event->getUser());
+        $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
     }

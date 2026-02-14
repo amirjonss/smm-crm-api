@@ -19,12 +19,12 @@ class CardStatusChangedListener
 
     public function __invoke(CardStatusChangedEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
-        $description = 'Пользователь ' . $userName . ' изменил статус карточки на ' . CardStatus::getStatusRuByStatus(
-                $event->getCard()->getStatus()
-            );
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
+        $statusRu = CardStatus::getStatusRuByStatus($event->getCard()->getStatus());
+        $description = $userName . ' изменил(а) статус на «' . $statusRu . '»';
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
-        $cardLog->setCreatedBy($event->getUser());
+        $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
     }

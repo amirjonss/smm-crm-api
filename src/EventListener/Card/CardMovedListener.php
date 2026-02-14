@@ -18,12 +18,12 @@ class CardMovedListener
 
     public function __invoke(CardMovedEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
-        $description =
-            'Пользователь ' . $userName . ' переместил карту с доски ' . $event->getOldBoardList()->getName() .
-            ' на доску ' . $event->getNewBoardList()->getName();
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
+        $description = $userName . ' переместил(а) эту карточку из списка «' . $event->getOldBoardList()->getName(
+            ) . '» в список «' . $event->getNewBoardList()->getName() . '»';
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
-        $cardLog->setCreatedBy($event->getUser());
+        $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
     }

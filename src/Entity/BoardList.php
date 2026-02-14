@@ -73,9 +73,8 @@ class BoardList implements
     #[Groups(['board-list:read', 'board-list:write', 'board:read', 'board-list:put:write'])]
     private bool $isArchived = false;
 
-    #[ORM\Column(length: 32)]
+    #[ORM\Column(length: 32, nullable: true)]
     #[Groups(['board-list:read', 'board-list:write', 'board:read', 'board-list:put:write'])]
-    #[Assert\NotBlank]
     private ?string $color = null;
 
     #[ORM\Column(type: Types::INTEGER)]

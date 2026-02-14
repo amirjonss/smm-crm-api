@@ -10,24 +10,23 @@ use App\Entity\Card;
 use App\Event\Card\CardArchivedEvent;
 use App\Event\Card\CardChangedDeadlineEvent;
 use App\Event\Card\CardDeleteDeadlineEvent;
-use App\Event\Card\CardMovedEvent;
 use App\Event\Card\CardRenamedEvent;
 use App\Event\Card\CardSetDeadlineEvent;
 use App\Event\Card\CardStatusChangedEvent;
 use App\Event\Card\CardUnarchivedEvent;
-use App\Validator\Card\CardChangeStatusValidationValidator;
+use App\Validator\Card\CardChangeStatusValidator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
-class CardRenameSubscriber implements EventSubscriberInterface
+class CardChangeSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private CurrentUser $currentUser,
         private EventDispatcherInterface $eventDispatcher,
-        private CardChangeStatusValidationValidator $cardStatusChangeValidationService
+        private CardChangeStatusValidator $cardStatusChangeValidationService
     ) {
     }
 
@@ -59,7 +58,6 @@ class CardRenameSubscriber implements EventSubscriberInterface
         }
 
         $this->renameAction($previousCard, $card);
-        $this->moveToBoardAction($previousCard, $card);
         $this->setDeadlineAction($previousCard, $card);
         $this->changeDeadlineAction($previousCard, $card);
         $this->deleteDeadlineAction($previousCard, $card);
@@ -78,17 +76,6 @@ class CardRenameSubscriber implements EventSubscriberInterface
         }
         $this->eventDispatcher->dispatch(
             new CardRenamedEvent($card, $this->currentUser->getUser(), $oldName, $newName)
-        );
-    }
-
-    public function moveToBoardAction(Card $previousCard, Card $card): void
-    {
-        if ($previousCard->getList() === $card->getList()) {
-            return;
-        }
-
-        $this->eventDispatcher->dispatch(
-            new CardMovedEvent($card, $this->currentUser->getUser(), $previousCard->getList(), $card->getList())
         );
     }
 

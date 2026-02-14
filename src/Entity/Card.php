@@ -97,7 +97,7 @@ class Card implements
 
     #[ORM\ManyToOne(targetEntity: BoardList::class, inversedBy: 'cards')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['card:read', 'card:write', 'card:post:write', 'card:put:write'])]
+    #[Groups(['card:read', 'card:write', 'card:post:write'])]
     #[Assert\NotNull]
     private ?BoardList $list = null;
 
@@ -118,6 +118,14 @@ class Card implements
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['card:read', 'card:write', 'board-list:read', 'card:put:write'])]
     private ?\DateTime $deadline = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['card:read', 'card:write', 'card:post:write', 'card:put:write'])]
+    private ?string $description = null;
+
+    #[ORM\Column(length: 32, nullable: true)]
+    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:post:write', 'card:put:write'])]
+    private ?string $color = null;
 
     #[ORM\Column(type: Types::INTEGER)]
     #[Groups(['card:read', 'card:write', 'board-list:read'])]
@@ -150,6 +158,7 @@ class Card implements
      * @var Collection<int, User>
      */
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'cards')]
+    #[Groups(['card:read', 'board-list:read'])]
     private Collection $executor;
 
     public function __construct()
@@ -231,6 +240,30 @@ class Card implements
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): static
+    {
+        $this->color = $color;
 
         return $this;
     }

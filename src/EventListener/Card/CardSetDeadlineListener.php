@@ -18,10 +18,12 @@ class CardSetDeadlineListener
 
     public function __invoke(CardSetDeadlineEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
-        $description = 'Пользователь ' . $userName . ' установил дедлайн на карточку';
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
+        $deadline = $event->getCard()->getDeadline()->format('d.m.Y');
+        $description = $userName . ' установил(а) срок ' . $deadline . ' на эту карточку';
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
-        $cardLog->setCreatedBy($event->getUser());
+        $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
     }

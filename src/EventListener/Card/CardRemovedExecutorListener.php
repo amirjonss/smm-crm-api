@@ -18,11 +18,12 @@ class CardRemovedExecutorListener
 
     public function __invoke(CardRemovedExecutorEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
         $executorName = $event->getExecutor()->getGivenName() . ' ' . $event->getExecutor()->getFamilyName();
-        $description = 'Пользователь ' . $userName . ' удалил исполнителя ' . $executorName . ' с карточки';
+        $description = $userName . ' удалил(а) участника ' . $executorName . ' с этой карточки';
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
-        $cardLog->setCreatedBy($event->getUser());
+        $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
     }

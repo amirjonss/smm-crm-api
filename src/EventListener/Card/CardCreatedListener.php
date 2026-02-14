@@ -18,8 +18,10 @@ class CardCreatedListener
 
     public function __invoke(CardCreatedEvent $event): void
     {
-        $userName = $event->getUser()->getGivenName() . ' ' . $event->getUser()->getFamilyName();
-        $description = 'Пользователь ' . $userName . ' создал карту';
+        $user = $event->getUser();
+        $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
+        $listName = $event->getCard()->getList()->getName();
+        $description = $userName . ' добавил(а) эту карточку в список ' . $listName;
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
 
         $this->cardLogManager->save($cardLog, true);

@@ -32,7 +32,7 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(),
         new GetCollection(),
         new Post(security: "is_granted('ROLE_ADMIN')"),
-        new Patch(),
+        new Patch(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
         new Delete(security: "is_granted('ROLE_ADMIN')"),
     ],
     normalizationContext: ['groups' => ['board:read']],

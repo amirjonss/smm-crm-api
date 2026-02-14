@@ -15,11 +15,13 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Component\Board\Enum\CardStatus;
 use App\Component\Card\Dtos\CardExecutorDto;
+use App\Component\Card\Dtos\CardMovePositionDto;
+use App\Component\Card\Enum\CardStatus;
 use App\Controller\CardAddExecutorAction;
 use App\Controller\CardCreateAction;
 use App\Controller\CardDeleteExecutorAction;
+use App\Controller\CardMovePositionAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\UpdatedAtSettableInterface;
@@ -58,7 +60,15 @@ use Symfony\Component\Validator\Constraints as Assert;
             input: CardExecutorDto::class,
             read: false
         ),
-        new Patch(),
+        new Post(
+            uriTemplate: '/cards/move-position',
+            controller: CardMovePositionAction::class,
+            denormalizationContext: ['groups' => ['card:move-position:write']],
+            input: CardMovePositionDto::class
+        ),
+        new Patch(
+            denormalizationContext: ['groups' => ['card:put:write']],
+        ),
         new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
     ],
     normalizationContext: ['groups' => ['card:read']],
@@ -87,26 +97,26 @@ class Card implements
 
     #[ORM\ManyToOne(targetEntity: BoardList::class, inversedBy: 'cards')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['card:read', 'card:write', 'card:post:write'])]
+    #[Groups(['card:read', 'card:write', 'card:post:write', 'card:put:write'])]
     #[Assert\NotNull]
     private ?BoardList $list = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:post:write'])]
+    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:post:write', 'card:put:write'])]
     #[Assert\NotBlank]
     private ?string $name = null;
 
     #[ORM\Column(length: 32, enumType: CardStatus::class)]
-    #[Groups(['card:read', 'card:write', 'board-list:read'])]
+    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:put:write'])]
     #[Assert\NotNull]
     private CardStatus $status = CardStatus::OPEN;
 
     #[ORM\Column(options: ['default' => false])]
-    #[Groups(['card:read', 'card:write', 'board-list:read'])]
+    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:put:write'])]
     private bool $isArchived = false;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['card:read', 'card:write', 'board-list:read'])]
+    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:put:write'])]
     private ?\DateTime $deadline = null;
 
     #[ORM\Column(type: Types::INTEGER)]

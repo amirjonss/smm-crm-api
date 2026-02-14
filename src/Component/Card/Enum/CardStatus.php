@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Component\Board\Enum;
+namespace App\Component\Card\Enum;
 
 enum CardStatus: string
 {

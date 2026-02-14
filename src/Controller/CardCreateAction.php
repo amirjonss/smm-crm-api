@@ -6,7 +6,8 @@ namespace App\Controller;
 
 use App\Controller\Base\AbstractController;
 use App\Entity\Card;
-use App\Service\SetPositionCardService;
+use App\Repository\CardRepository;
+use App\Service\CardSetPositionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -17,10 +18,13 @@ class CardCreateAction extends AbstractController
         Card $card,
         EventDispatcherInterface $eventDispatcher,
         EntityManagerInterface $entityManager,
-        SetPositionCardService $setPositionCardService
+        CardSetPositionService $setPositionCardService,
+        CardRepository $cardRepository
     ): Card {
+        $prevCard = $cardRepository->findCardByLastPositionInList($card->getList());
+
         $card->setCreatedAt(new \DateTime());
-        $card->setPosition($setPositionCardService->getPositionCard());
+        $card->setPosition($setPositionCardService->calculatePosition($card, $prevCard, null));
         $card->setCreatedBy($this->getUser());
         $entityManager->persist($card);
         $entityManager->flush();

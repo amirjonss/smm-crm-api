@@ -15,6 +15,7 @@ use App\Event\Card\CardRenamedEvent;
 use App\Event\Card\CardSetDeadlineEvent;
 use App\Event\Card\CardStatusChangedEvent;
 use App\Event\Card\CardUnarchivedEvent;
+use App\Validator\Card\CardChangeStatusValidationValidator;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,7 +26,8 @@ class CardRenameSubscriber implements EventSubscriberInterface
 {
     public function __construct(
         private CurrentUser $currentUser,
-        private EventDispatcherInterface $eventDispatcher
+        private EventDispatcherInterface $eventDispatcher,
+        private CardChangeStatusValidationValidator $cardStatusChangeValidationService
     ) {
     }
 
@@ -140,6 +142,7 @@ class CardRenameSubscriber implements EventSubscriberInterface
     public function changeStatusAction(Card $oldCard, Card $newCard): void
     {
         if ($oldCard->getStatus() !== $newCard->getStatus()) {
+            $this->cardStatusChangeValidationService->validate($newCard->getStatus(), $this->currentUser->getUser());
             $this->eventDispatcher->dispatch(
                 new CardStatusChangedEvent($newCard, $this->currentUser->getUser())
             );

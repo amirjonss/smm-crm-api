@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventListener\Card;
 
-use App\Component\Board\Enum\CardStatus;
+use App\Component\Card\Enum\CardStatus;
 use App\Component\CardLog\CardLogFactory;
 use App\Component\CardLog\CardLogManager;
 use App\Event\Card\CardStatusChangedEvent;

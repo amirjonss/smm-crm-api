@@ -8,7 +8,7 @@ use App\Repository\ProjectRepository;
 use App\Repository\UserRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 
-readonly class GetUserProjectsService
+readonly class UserGetProjectsService
 {
     public function __construct(
         private ProjectRepository $projectRepository,

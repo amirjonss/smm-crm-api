@@ -213,6 +213,14 @@ class User implements
     #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'executor')]
     private Collection $cards;
 
+    #[ORM\ManyToOne]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
+    private ?MediaObject $avatar = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['users:read', 'user:write'])]
+    private ?string $telegramUsername = null;
+
     public function __construct()
     {
         $this->projects = new ArrayCollection();
@@ -382,6 +390,30 @@ class User implements
         if ($this->cards->removeElement($card)) {
             $card->removeExecutor($this);
         }
+
+        return $this;
+    }
+
+    public function getAvatar(): ?MediaObject
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?MediaObject $avatar): static
+    {
+        $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    public function getTelegramUsername(): ?string
+    {
+        return $this->telegramUsername;
+    }
+
+    public function setTelegramUsername(?string $telegramUsername): static
+    {
+        $this->telegramUsername = $telegramUsername;
 
         return $this;
     }

@@ -76,12 +76,11 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
         }
 
         switch ($resourceClass) {
-//            case Application::class:
-//                $this->joinEntityAndAddUser($queryBuilder, $rootTable, 'company');
-//                break;
             case ContentPlan::class:
             case ContentPlanPlatform::class:
             case Project::class:
+                $this->addUser($queryBuilder, $rootTable);
+                break;
         }
     }
 

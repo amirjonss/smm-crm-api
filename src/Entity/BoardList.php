@@ -14,6 +14,9 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Component\BoardList\Dtos\BoardListMovePositionDto;
+use App\Controller\BoardListCreateAction;
+use App\Controller\BoardListMovePositionAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\UpdatedAtSettableInterface;
@@ -31,9 +34,25 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: 'board_list')]
 #[ApiResource(
     operations: [
+        new GetCollection(
+            uriTemplate: '/board_lists/archived',
+            paginationItemsPerPage: 20,
+            order: ['updatedAt' => 'desc'],
+            extraProperties: ['archived_only' => true],
+        ),
         new Get(),
         new GetCollection(),
-        new Post(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
+        new Post(
+            controller: BoardListCreateAction::class,
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
+        ),
+        new Post(
+            uriTemplate: '/board_lists/move-position',
+            controller: BoardListMovePositionAction::class,
+            denormalizationContext: ['groups' => ['board-list:move-position:write']],
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
+            input: BoardListMovePositionDto::class,
+        ),
         new Patch(
             denormalizationContext: ['groups' => ['board-list:put:write']],
             security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"
@@ -77,10 +96,9 @@ class BoardList implements
     #[Groups(['board-list:read', 'board-list:write', 'board:read', 'board-list:put:write'])]
     private ?string $color = null;
 
-    #[ORM\Column(type: Types::INTEGER)]
-    #[Groups(['board-list:read', 'board-list:write', 'board:read', 'board-list:put:write'])]
-    #[Assert\NotNull]
-    private int $position = 0;
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
+    #[Groups(['board-list:read', 'board-list:write', 'board:read'])]
+    private ?int $position = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['board-list:read'])]
@@ -163,12 +181,12 @@ class BoardList implements
         return $this;
     }
 
-    public function getPosition(): int
+    public function getPosition(): ?int
     {
         return $this->position;
     }
 
-    public function setPosition(int $position): static
+    public function setPosition(?int $position): static
     {
         $this->position = $position;
 

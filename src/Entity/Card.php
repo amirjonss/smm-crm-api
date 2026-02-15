@@ -38,8 +38,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Entity(repositoryClass: CardRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(),
         new GetCollection(),
+        new GetCollection(
+            uriTemplate: '/cards/archived',
+            paginationItemsPerPage: 20,
+            order: ['updatedAt' => 'desc'],
+            extraProperties: ['archived_only' => true],
+        ),
+        new Get(),
         new Post(
             controller: CardCreateAction::class,
             denormalizationContext: ['groups' => ['card:post:write']],
@@ -127,10 +133,9 @@ class Card implements
     #[Groups(['card:read', 'card:write', 'board-list:read', 'card:post:write', 'card:put:write'])]
     private ?string $color = null;
 
-    #[ORM\Column(type: Types::INTEGER)]
+    #[ORM\Column(type: Types::INTEGER, nullable: true)]
     #[Groups(['card:read', 'card:write', 'board-list:read'])]
-    #[Assert\NotNull]
-    private int $position = 0;
+    private ?int $position = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['card:read'])]
@@ -232,12 +237,12 @@ class Card implements
         return $this;
     }
 
-    public function getPosition(): int
+    public function getPosition(): ?int
     {
         return $this->position;
     }
 
-    public function setPosition(int $position): static
+    public function setPosition(?int $position): static
     {
         $this->position = $position;
 

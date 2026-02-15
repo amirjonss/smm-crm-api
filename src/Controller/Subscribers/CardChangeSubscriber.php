@@ -14,7 +14,10 @@ use App\Event\Card\CardRenamedEvent;
 use App\Event\Card\CardSetDeadlineEvent;
 use App\Event\Card\CardStatusChangedEvent;
 use App\Event\Card\CardUnarchivedEvent;
+use App\Repository\CardRepository;
+use App\Service\CardSetPositionService;
 use App\Validator\Card\CardChangeStatusValidator;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,7 +29,9 @@ class CardChangeSubscriber implements EventSubscriberInterface
     public function __construct(
         private CurrentUser $currentUser,
         private EventDispatcherInterface $eventDispatcher,
-        private CardChangeStatusValidator $cardStatusChangeValidationService
+        private CardChangeStatusValidator $cardStatusChangeValidationService,
+        private CardSetPositionService $cardSetPositionService,
+        private EntityManagerInterface $entityManager,
     ) {
     }
 
@@ -114,6 +119,9 @@ class CardChangeSubscriber implements EventSubscriberInterface
             $this->eventDispatcher->dispatch(
                 new CardArchivedEvent($newCard, $this->currentUser->getUser())
             );
+
+            $newCard->setPosition(null);
+            $this->entityManager->flush();
         }
     }
 
@@ -123,6 +131,15 @@ class CardChangeSubscriber implements EventSubscriberInterface
             $this->eventDispatcher->dispatch(
                 new CardUnarchivedEvent($newCard, $this->currentUser->getUser())
             );
+
+            $position = $this->cardSetPositionService->calculatePosition(
+                $newCard,
+                $newCard->getList(),
+                null,
+                null,
+            );
+            $newCard->setPosition($position);
+            $this->entityManager->flush();
         }
     }
 

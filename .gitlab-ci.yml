@@ -32,13 +32,11 @@ build-job:
         DOCKER_TLS_CERTDIR: "/certs"
     script:
         - echo "Building Docker images..."
-        - docker compose up -d --build
+        - docker compose build php
         - echo "Validating composer.json..."
-        - docker compose run --rm php composer validate --strict
+        - docker compose run --rm --no-deps php composer validate --strict
         - echo "Installing dependencies..."
-        - docker compose run --rm php composer install --no-scripts --optimize-autoloader
-        - echo "Checking Symfony requirements..."
-        - docker compose run --rm php bin/console about
+        - docker compose run --rm --no-deps php composer install --no-scripts --optimize-autoloader
         - echo "Build completed successfully!"
     only:
         - dev

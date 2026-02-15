@@ -32,7 +32,7 @@ build-job:
         DOCKER_TLS_CERTDIR: "/certs"
     script:
         - echo "Building Docker images..."
-        - docker compose build
+        - docker compose up -d build
         - echo "Validating composer.json..."
         - docker compose run --rm php composer validate --strict
         - echo "Installing dependencies..."
@@ -48,6 +48,7 @@ deploy-dev-job:
     stage: deploy
     only:
         - dev
+    when: manual
     script:
         - echo "$DEPLOY_PRIVATE_SSH_KEY_PROD" | tr -d '\r' | ssh-add -
         - echo "Deploying the DEV project..."
@@ -64,6 +65,7 @@ deploy-prod-job:
     stage: deploy
     only:
         - master
+    when: manual
     script:
         - echo "${DEPLOY_PRIVATE_SSH_KEY_PROD}" | tr -d '\r' | ssh-add -
         - echo "Deploying the PROD project..."

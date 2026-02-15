@@ -34,9 +34,9 @@ build-job:
         - echo "Building Docker images..."
         - docker compose build php
         - echo "Validating composer.json..."
-        - docker compose run --rm --no-deps php composer validate --strict
+        - docker compose run --rm --no-deps --entrypoint "composer" php validate --strict
         - echo "Installing dependencies..."
-        - docker compose run --rm --no-deps php composer install --no-scripts --optimize-autoloader
+        - docker compose run --rm --no-deps --entrypoint "composer" php install --no-scripts --optimize-autoloader
         - echo "Build completed successfully!"
     only:
         - dev

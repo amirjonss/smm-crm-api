@@ -32,7 +32,7 @@ build-job:
         DOCKER_TLS_CERTDIR: "/certs"
     script:
         - echo "Building Docker images..."
-        - docker compose up -d build
+        - docker compose up -d --build
         - echo "Validating composer.json..."
         - docker compose run --rm php composer validate --strict
         - echo "Installing dependencies..."

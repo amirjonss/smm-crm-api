@@ -122,7 +122,7 @@ class Card implements
     private bool $isArchived = false;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:put:write'])]
+    #[Groups(['card:read', 'card:post:write', 'board-list:read', 'card:put:write'])]
     private ?\DateTime $deadline = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

@@ -42,6 +42,8 @@ services:
         image: redis:7.4.4-alpine
         restart: unless-stopped
         container_name: ${DOCKER_PROJECT_NAME}_redis
+        ports:
+            - 127.0.0.1:${DOCKER_REDIS_PORT}:6379
 
     # Backup block. Turns on with docker compose --profile backup up -d
     telegram-bot-api:

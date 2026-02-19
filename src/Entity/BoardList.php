@@ -234,9 +234,9 @@ class BoardList implements
         return $this->updatedBy;
     }
 
-    public function setUpdatedBy(?UserInterface $updatedBy): static
+    public function setUpdatedBy(?UserInterface $user): static
     {
-        $this->updatedBy = $updatedBy;
+        $this->updatedBy = $user;
 
         return $this;
     }

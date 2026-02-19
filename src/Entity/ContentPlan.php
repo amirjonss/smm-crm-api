@@ -22,6 +22,7 @@ use App\Entity\Interfaces\UpdatedAtSettableInterface;
 use App\Entity\Interfaces\UpdatedBySettableInterface;
 use App\Entity\Traits\CreatedUpdatedDeletedAtAndByTrait;
 use App\Repository\ContentPlanRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -80,7 +81,7 @@ class ContentPlan implements
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Groups(['content-plan:read', 'content-plan:write'])]
     #[Assert\NotBlank]
-    private ?\DateTime $date = null;
+    private ?DateTime $date = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['content-plan:read', 'content-plan:write'])]
@@ -94,11 +95,11 @@ class ContentPlan implements
 
     #[ORM\Column]
     #[Groups(['content-plan:read'])]
-    private ?\DateTime $createdAt = null;
+    private ?DateTime $createdAt = null;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['content-plan:read'])]
-    private ?\DateTime $updatedAt = null;
+    private ?DateTime $updatedAt = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
@@ -170,12 +171,12 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getDate(): ?\DateTime
+    public function getDate(): ?DateTime
     {
         return $this->date;
     }
 
-    public function setDate(\DateTime $date): static
+    public function setDate(DateTime $date): static
     {
         $this->date = $date;
 
@@ -206,7 +207,7 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?DateTime
     {
         return $this->createdAt;
     }
@@ -218,7 +219,7 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?DateTime
     {
         return $this->updatedAt;
     }
@@ -247,9 +248,9 @@ class ContentPlan implements
         return $this->updatedBy;
     }
 
-    public function setUpdatedBy(?UserInterface $updatedBy): static
+    public function setUpdatedBy(?UserInterface $user): static
     {
-        $this->updatedBy = $updatedBy;
+        $this->updatedBy = $user;
 
         return $this;
     }

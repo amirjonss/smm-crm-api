@@ -48,7 +48,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(
             normalizationContext: ['groups' => ['users:read']],
-            security: "is_granted('ROLE_ADMIN')",
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
         ),
         new Get(
             security: "object == user || is_granted('ROLE_ADMIN')",
@@ -214,7 +214,7 @@ class User implements
     private Collection $cards;
 
     #[ORM\ManyToOne]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read', 'board-list:read'])]
     private ?MediaObject $avatar = null;
 
     #[ORM\Column(length: 255, nullable: true)]

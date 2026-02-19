@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Controller\DeleteAction;
+use App\Component\User\Enum\Roles;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -26,6 +27,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 #[ORM\Entity(repositoryClass: ProjectRepository::class)]
 #[ApiResource(
@@ -166,6 +168,26 @@ class Project implements
         return $this;
     }
 
+    #[Assert\Callback]
+    public function validateExecutorRole(ExecutionContextInterface $context): void
+    {
+        if (null === $this->executor) {
+            return;
+        }
+
+        $allowedRoles = [
+            Roles::ADMIN->value,
+            Roles::SMM->value,
+        ];
+
+        if (0 === count(array_intersect($allowedRoles, $this->executor->getRoles()))) {
+            $context
+                ->buildViolation('Project executor must have admin or smm role')
+                ->atPath('executor')
+                ->addViolation();
+        }
+    }
+
     public function getPhone(): ?string
     {
         return $this->phone;
@@ -219,9 +241,9 @@ class Project implements
         return $this->updatedBy;
     }
 
-    public function setUpdatedBy(?UserInterface $updatedBy): static
+    public function setUpdatedBy(?UserInterface $user): static
     {
-        $this->updatedBy = $updatedBy;
+        $this->updatedBy = $user;
 
         return $this;
     }

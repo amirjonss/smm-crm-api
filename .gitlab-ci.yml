@@ -32,7 +32,7 @@ build-ci-image:
         - docker:24-dind
     script:
         - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-        - docker build -t $CI_REGISTRY_IMAGE/ci-php:8.3 -f docker/ci/Dockerfile .
+        - docker build -t $CI_REGISTRY_IMAGE/ci-php:8.3 -f docker/php/Dockerfile .
         - docker push $CI_REGISTRY_IMAGE/ci-php:8.3
     rules:
         - changes:

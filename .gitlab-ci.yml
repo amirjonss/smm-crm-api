@@ -25,14 +25,18 @@ before_script:
 #
 php-cs-fixer:
     stage: lint
+    image: composer:2
     before_script: []
     script:
+        - composer install --no-interaction --no-progress --prefer-dist --no-scripts
         - composer lint:fixer:check
 
 php-stan:
     stage: lint
+    image: composer:2
     before_script: []
     script:
+        - composer install --no-interaction --no-progress --prefer-dist --no-scripts
         - composer lint:phpstan
 
 deploy-dev-job:

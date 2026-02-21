@@ -14,12 +14,11 @@ use App\Message\SendPasswdLoginByEmail;
 use App\Repository\UserRepository;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 /**
- * Class CreateUserController
- *
- * @package App\Controller
+ * Class CreateUserController.
  */
 class UserCreateAction extends AbstractController
 {
@@ -27,9 +26,10 @@ class UserCreateAction extends AbstractController
         SerializerInterface $serializer,
         ValidatorInterface $validator,
         CurrentUser $currentUser,
-        private MessageBusInterface $messageBus
+        NormalizerInterface $normalizer,
+        private MessageBusInterface $messageBus,
     ) {
-        parent::__construct($serializer, $validator, $currentUser);
+        parent::__construct($serializer, $validator, $currentUser, $normalizer);
     }
 
     public function __invoke(
@@ -69,6 +69,7 @@ class UserCreateAction extends AbstractController
         for ($i = 0; $i < 12; $i++) {
             $password .= $chars[random_int(0, strlen($chars) - 1)];
         }
+
         return $password;
     }
 

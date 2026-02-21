@@ -14,9 +14,9 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
-use App\Component\User\Enum\Roles;
 use App\Component\User\Dtos\RefreshTokenRequestDto;
 use App\Component\User\Dtos\TokensDto;
+use App\Component\User\Enum\Roles;
 use App\Controller\DeleteAction;
 use App\Controller\UserAboutMeAction;
 use App\Controller\UserAuthAction;
@@ -34,7 +34,6 @@ use App\Entity\Traits\CreatedAtAccessorsTrait;
 use App\Entity\Traits\DeletedAtAndByAccessorsTrait;
 use App\Entity\Traits\UpdatedAtAndByAccessorsTrait;
 use App\Repository\UserRepository;
-use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -137,21 +136,14 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'createdAt', 'updatedAt', 'email'])]
 #[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial', 'roles' => 'partial'])]
-//#[UniqueEntity('email', message: 'This email is already used')]
+// #[UniqueEntity('email', message: 'This email is already used')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User implements
-    UserInterface,
-    CreatedAtSettableInterface,
-    UpdatedAtSettableInterface,
-    UpdatedBySettableInterface,
-    DeletedAtSettableInterface,
-    DeletedBySettableInterface,
-    PasswordAuthenticatedUserInterface
+class User implements UserInterface, CreatedAtSettableInterface, UpdatedAtSettableInterface, UpdatedBySettableInterface, DeletedAtSettableInterface, DeletedBySettableInterface, PasswordAuthenticatedUserInterface
 {
-//    use CreatedUpdatedDeletedAtAndByTrait;
+    //    use CreatedUpdatedDeletedAtAndByTrait;
     use CreatedAtAccessorsTrait;
-    use UpdatedAtAndByAccessorsTrait;
     use DeletedAtAndByAccessorsTrait;
+    use UpdatedAtAndByAccessorsTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -177,21 +169,21 @@ class User implements
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['user:read'])]
-    private ?DateTimeInterface $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['user:read'])]
-    private ?DateTimeInterface $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?DateTimeInterface $deletedAt = null;
+    private ?\DateTimeInterface $deletedAt = null;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[Groups(['users:read'])]
-    private ?self $updatedBy = null;
+    private ?UserInterface $updatedBy = null;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
-    private ?self $deletedBy = null;
+    private ?UserInterface $deletedBy = null;
 
     /**
      * @var Collection<int, Project>
@@ -265,7 +257,7 @@ class User implements
 
     public function getUserIdentifier(): string
     {
-        return (string)$this->getId();
+        return (string) $this->getId();
     }
 
     public function addRole(string $role): self

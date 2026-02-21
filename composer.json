@@ -77,7 +77,10 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
-        ]
+        ],
+        "lint:phpstan": "phpstan analyse --memory-limit=512M",
+        "lint:fixer": "php-cs-fixer fix --diff --verbose",
+        "lint:fixer:check": "php-cs-fixer fix --dry-run --diff"
     },
     "conflict": {
         "symfony/symfony": "*"
@@ -89,6 +92,9 @@
         }
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.86",
+        "phpstan/phpstan": "^2.1",
+        "phpstan/phpstan-symfony": "^2.0",
         "symfony/maker-bundle": "^1.63"
     }
 }

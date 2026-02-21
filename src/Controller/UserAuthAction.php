@@ -14,9 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
- * Class UserAuthAction
- *
- * @package App\Controller
+ * Class UserAuthAction.
  */
 class UserAuthAction extends AbstractController
 {
@@ -27,7 +25,7 @@ class UserAuthAction extends AbstractController
         User $data,
         UserRepository $userRepository,
         UserPasswordHasherInterface $passwordEncoder,
-        TokensCreator $tokensCreator
+        TokensCreator $tokensCreator,
     ): Response {
         $user = $userRepository->findOneByEmail($data->getEmail());
 

@@ -15,7 +15,7 @@ class CardMovedEvent extends Event
         private Card $card,
         private User $user,
         private BoardList $oldBoardList,
-        private BoardList $newBoardList
+        private BoardList $newBoardList,
     ) {
     }
 

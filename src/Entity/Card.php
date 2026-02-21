@@ -85,15 +85,11 @@ use Symfony\Component\Validator\Constraints as Assert;
     'list.id' => 'exact',
     'list.board.id' => 'exact',
     'name' => 'partial',
-    'status' => 'exact'
+    'status' => 'exact',
 ])]
 #[ApiFilter(BooleanFilter::class, properties: ['isArchived'])]
 #[ApiFilter(DateFilter::class, properties: ['deadline'])]
-class Card implements
-    CreatedAtSettableInterface,
-    CreatedBySettableInterface,
-    UpdatedAtSettableInterface,
-    UpdatedBySettableInterface
+class Card implements CreatedAtSettableInterface, CreatedBySettableInterface, UpdatedAtSettableInterface, UpdatedBySettableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -139,20 +135,20 @@ class Card implements
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['card:read'])]
-    private ?\DateTime $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['card:read'])]
-    private ?\DateTime $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     #[Groups(['card:read'])]
-    private ?User $createdBy = null;
+    private ?UserInterface $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
-    private ?User $updatedBy = null;
+    private ?UserInterface $updatedBy = null;
 
     /** @var Collection<int, CardLog> */
     #[ORM\OneToMany(targetEntity: CardLog::class, mappedBy: 'card', orphanRemoval: true)]
@@ -273,7 +269,7 @@ class Card implements
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -285,7 +281,7 @@ class Card implements
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
@@ -297,19 +293,19 @@ class Card implements
         return $this;
     }
 
-    public function getCreatedBy(): ?User
+    public function getCreatedBy(): ?UserInterface
     {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(?UserInterface $createdBy): static
+    public function setCreatedBy(?UserInterface $user): static
     {
-        $this->createdBy = $createdBy;
+        $this->createdBy = $user;
 
         return $this;
     }
 
-    public function getUpdatedBy(): ?User
+    public function getUpdatedBy(): ?UserInterface
     {
         return $this->updatedBy;
     }

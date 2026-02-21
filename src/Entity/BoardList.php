@@ -65,11 +65,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(OrderFilter::class, properties: ['id', 'position', 'createdAt'])]
 #[ApiFilter(SearchFilter::class, properties: ['board.id' => 'exact', 'name' => 'partial'])]
 #[ApiFilter(BooleanFilter::class, properties: ['isArchived'])]
-class BoardList implements
-    CreatedAtSettableInterface,
-    CreatedBySettableInterface,
-    UpdatedAtSettableInterface,
-    UpdatedBySettableInterface
+class BoardList implements CreatedAtSettableInterface, CreatedBySettableInterface, UpdatedAtSettableInterface, UpdatedBySettableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -102,20 +98,20 @@ class BoardList implements
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['board-list:read'])]
-    private ?\DateTime $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['board-list:read'])]
-    private ?\DateTime $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     #[Groups(['board-list:read'])]
-    private ?User $createdBy = null;
+    private ?UserInterface $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
-    private ?User $updatedBy = null;
+    private ?UserInterface $updatedBy = null;
 
     /** @var Collection<int, Card> */
     #[ORM\OneToMany(targetEntity: Card::class, mappedBy: 'list', orphanRemoval: true)]
@@ -193,7 +189,7 @@ class BoardList implements
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -205,7 +201,7 @@ class BoardList implements
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
@@ -217,19 +213,19 @@ class BoardList implements
         return $this;
     }
 
-    public function getCreatedBy(): ?User
+    public function getCreatedBy(): ?UserInterface
     {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(?UserInterface $createdBy): static
+    public function setCreatedBy(?UserInterface $user): static
     {
-        $this->createdBy = $createdBy;
+        $this->createdBy = $user;
 
         return $this;
     }
 
-    public function getUpdatedBy(): ?User
+    public function getUpdatedBy(): ?UserInterface
     {
         return $this->updatedBy;
     }

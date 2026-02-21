@@ -21,7 +21,7 @@ class CardMovedListener
         $user = $event->getUser();
         $userName = $user->getGivenName() . ' ' . $user->getFamilyName();
         $description = $userName . ' переместил(а) эту карточку из списка «' . $event->getOldBoardList()->getName(
-            ) . '» в список «' . $event->getNewBoardList()->getName() . '»';
+        ) . '» в список «' . $event->getNewBoardList()->getName() . '»';
         $cardLog = $this->cardLogFactory->create($event->getCard(), $description);
         $cardLog->setCreatedBy($user);
 

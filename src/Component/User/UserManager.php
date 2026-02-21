@@ -10,16 +10,15 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
- * Class UserManager
+ * Class UserManager.
  *
  * @method save(User $entity, bool $needToFlush = false): void
- * @package App\Component\User
  */
 class UserManager extends AbstractManager
 {
     public function __construct(
         EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordEncoder
+        private UserPasswordHasherInterface $passwordEncoder,
     ) {
         parent::__construct($entityManager);
     }

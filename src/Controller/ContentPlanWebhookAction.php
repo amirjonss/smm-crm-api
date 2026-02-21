@@ -32,7 +32,7 @@ class ContentPlanWebhookAction extends AbstractController
 
         $input = new ArrayInput([
             'command' => 'app:send-daily-content-plans',
-            '--chatId' => (string)$chatId,
+            '--chatId' => (string) $chatId,
         ]);
         $output = new NullOutput();
 

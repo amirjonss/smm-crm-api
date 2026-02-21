@@ -9,8 +9,6 @@ use ApiPlatform\Doctrine\Orm\Extension\QueryItemExtensionInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use App\Controller\Base\AbstractController;
-use App\Entity\Board;
-use App\Entity\BoardList;
 use App\Entity\ContentPlan;
 use App\Entity\ContentPlanPlatform;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -19,39 +17,35 @@ use Doctrine\ORM\QueryBuilder;
 
 /**
  * Class uses for change all queries to database.
- *
- * @package App\Controller\ApiPlatform\Extensions
  */
 class ReadExtension extends AbstractController implements QueryCollectionExtensionInterface, QueryItemExtensionInterface
 {
     private array $resourceClassInterfaces = [];
 
     /**
-     * Collection operations without id, like GET /users
+     * Collection operations without id, like GET /users.
      */
     public function applyToCollection(
-        QueryBuilder                $queryBuilder,
+        QueryBuilder $queryBuilder,
         QueryNameGeneratorInterface $queryNameGenerator,
-        string                      $resourceClass,
-        Operation                   $operation = null,
-        array                       $context = []
-    ): void
-    {
+        string $resourceClass,
+        ?Operation $operation = null,
+        array $context = [],
+    ): void {
         $this->andWhere($queryBuilder, $resourceClass);
     }
 
     /**
-     * Item operations with id, like GET /users/{id} or DELETE /users/{id}
+     * Item operations with id, like GET /users/{id} or DELETE /users/{id}.
      */
     public function applyToItem(
-        QueryBuilder                $queryBuilder,
+        QueryBuilder $queryBuilder,
         QueryNameGeneratorInterface $queryNameGenerator,
-        string                      $resourceClass,
-        array                       $identifiers,
-        Operation                   $operation = null,
-        array                       $context = []
-    ): void
-    {
+        string $resourceClass,
+        array $identifiers,
+        ?Operation $operation = null,
+        array $context = [],
+    ): void {
         $this->andWhere($queryBuilder, $resourceClass);
     }
 
@@ -60,7 +54,7 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
      * Also, you should hide elements that marked as deleted.
      *
      * @param QueryBuilder $queryBuilder
-     * @param string $resourceClass
+     * @param string       $resourceClass
      */
     private function andWhere(QueryBuilder $queryBuilder, string $resourceClass): void
     {
@@ -86,10 +80,9 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
 
     private function joinEntityAndAddUser(
         QueryBuilder $queryBuilder,
-        string       $rootTable,
-        string       $joinTable
-    ): void
-    {
+        string $rootTable,
+        string $joinTable,
+    ): void {
         $queryBuilder->join("{$rootTable}.{$joinTable}", $joinTable);
 
         $this->addUser($queryBuilder, $joinTable);

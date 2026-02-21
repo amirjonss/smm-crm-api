@@ -23,7 +23,7 @@ class SeedDatabaseCommand extends Command
 {
     private const FIRST_NAMES = ['James', 'Mary', 'Robert', 'Patricia', 'John', 'Jennifer', 'Michael', 'Linda', 'David', 'Elizabeth', 'William', 'Barbara', 'Richard', 'Susan', 'Joseph', 'Jessica', 'Thomas', 'Sarah', 'Charles', 'Karen', 'Christopher', 'Nancy', 'Matthew', 'Lisa', 'Anthony', 'Betty', 'Mark', 'Margaret', 'Donald', 'Sandra', 'Steven', 'Ashley', 'Paul', 'Kimberly', 'Andrew', 'Emily', 'Joshua', 'Donna', 'Kenneth', 'Michelle'];
     private const LAST_NAMES = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee', 'Perez', 'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson', 'Walker', 'Young', 'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores'];
-    
+
     private const PROJECT_ADJECTIVES = ['Alpha', 'Beta', 'Gamma', 'Delta', 'NextGen', 'Global', 'Strategic', 'Creative', 'Digital', 'Prime', 'Elite', 'Vanguard', 'Pioneer', 'Apex', 'Zenith', 'Summit', 'Vertex', 'Pinnacle', 'Acme', 'Meridian', 'Quantum', 'Horizon', 'Flux', 'Solar', 'Lunar', 'Nova', 'Nebula', 'Echo', 'Swift', 'Bright'];
     private const PROJECT_NOUNS = ['Campaign', 'Launch', 'Rebrand', 'Strategy', 'Initiative', 'Project', 'Program', 'Operation', 'Mission', 'Quest', 'Venture', 'Undertaking', 'Enterprise', 'Pursuit', 'Drive', 'Push', 'Movement', 'Crusade', 'Blitz', 'Slogan', 'Hub', 'System', 'Platform', 'Network', 'Portal', 'Engine', 'Core', 'Base', 'Flow', 'Pulse'];
     private const PROJECT_SUFFIXES = ['v1', 'v2', '2026', 'Internal', 'External', 'Phase 1', 'Phase 2', 'Main', 'Support', 'Direct'];
@@ -48,10 +48,10 @@ class SeedDatabaseCommand extends Command
         'Stop doing this in {topic}',
         'The secret to {topic} success',
         'Level up your {topic} game',
-        'Is {topic} dead?'
+        'Is {topic} dead?',
     ];
     private const TOPICS = ['Marketing', 'SEO', 'Design', 'Development', 'Sales', 'Branding', 'Social Media', 'Content', 'Analytics', 'Strategy', 'Innovation', 'Tech', 'AI', 'Automation', 'Growth', 'Management', 'Leadership', 'Productivity', 'Remote Work', 'Startup Life', 'UX', 'Cloud', 'Data', 'Security', 'Mobile', 'Web', 'Ecommerce', 'UI', 'Backend', 'Frontend'];
-    
+
     private const IDEAS = [
         'Showcase a day in the life of an employee',
         'Interview a satisfied customer',
@@ -77,12 +77,12 @@ class SeedDatabaseCommand extends Command
         'Debunk a common industry myth',
         'Share a preview of a new project',
         'Post a client testimonial',
-        'Share a helpful resource or tool'
+        'Share a helpful resource or tool',
     ];
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        private UserPasswordHasherInterface $passwordHasher
+        private UserPasswordHasherInterface $passwordHasher,
     ) {
         parent::__construct();
     }
@@ -97,13 +97,13 @@ class SeedDatabaseCommand extends Command
         $io->section('Truncating tables...');
         $connection = $this->entityManager->getConnection();
         $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
-        
+
         $tables = [
             'content_plan_content_plan_platform',
             'content_plan_platform',
             'content_plan',
             'project',
-            'user'
+            'user',
         ];
 
         foreach ($tables as $table) {
@@ -113,7 +113,7 @@ class SeedDatabaseCommand extends Command
                 // Ignore if table doesn't exist, though it should
             }
         }
-        
+
         $connection->executeStatement('SET FOREIGN_KEY_CHECKS = 1');
         $io->success('Tables truncated.');
 
@@ -163,16 +163,16 @@ class SeedDatabaseCommand extends Command
                 $project->setCreatedBy($user);
                 $project->setCreatedAt(new \DateTime());
                 $project->setPhone($this->generatePhone());
-                
+
                 $this->entityManager->persist($project);
 
                 $this->createContentPlans($project, $user, 4, 0, $formats);   // This Month
                 $this->createContentPlans($project, $user, 3, -1, $formats);  // Last Month
                 $this->createContentPlans($project, $user, 3, -2, $formats);  // Prev Month
-                
+
                 $progressBar->advance();
             }
-            
+
             $this->entityManager->flush();
             $this->entityManager->clear();
         }
@@ -190,7 +190,8 @@ class SeedDatabaseCommand extends Command
         $part1 = rand(100, 999);
         $part2 = rand(10, 99);
         $part3 = rand(10, 99);
-        return sprintf("998 (%d) %d - %d - %d", $code, $part1, $part2, $part3);
+
+        return sprintf('998 (%d) %d - %d - %d', $code, $part1, $part2, $part3);
     }
 
     private function createContentPlans(Project $project, User $user, int $count, int $monthOffset, array $formats): void
@@ -202,27 +203,27 @@ class SeedDatabaseCommand extends Command
             $template = self::POST_TEMPLATES[array_rand(self::POST_TEMPLATES)];
             $topic = self::TOPICS[array_rand(self::TOPICS)];
             $topic2 = self::TOPICS[array_rand(self::TOPICS)];
-            
+
             $postTitle = str_replace(['{topic}', '{topic2}'], [$topic, $topic2], $template);
-            $postTitle .= " #" . rand(100, 999);
+            $postTitle .= ' #' . rand(100, 999);
 
             $plan = new ContentPlan();
             $plan->setPost($postTitle);
             $plan->setFormat($formats[array_rand($formats)]);
-            $plan->setIdea(self::IDEAS[array_rand(self::IDEAS)] . " (Ref " . rand(1, 100) . ")");
+            $plan->setIdea(self::IDEAS[array_rand(self::IDEAS)] . ' (Ref ' . rand(1, 100) . ')');
             $plan->setProject($project);
             $plan->setCreatedBy($user);
             $plan->setCreatedAt(new \DateTime());
-            
+
             $date = new \DateTime();
             if ($monthOffset !== 0) {
-                $date->modify((string)$monthOffset . ' month');
+                $date->modify((string) $monthOffset . ' month');
             }
-            $daysInMonth = (int)$date->format('t');
+            $daysInMonth = (int) $date->format('t');
             $randomDay = rand(1, $daysInMonth);
-            $date->setDate((int)$date->format('Y'), (int)$date->format('m'), $randomDay);
+            $date->setDate((int) $date->format('Y'), (int) $date->format('m'), $randomDay);
             $date->setTime(rand(0, 23), rand(0, 59));
-            
+
             $plan->setDate($date);
             $plan->setPosition($k);
 

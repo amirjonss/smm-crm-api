@@ -31,7 +31,7 @@ class CardChangeStatusValidator
 
     /**
      * @param string[] $userRoles
-     * @param Roles[] $allowedRoles
+     * @param Roles[]  $allowedRoles
      */
     private function hasAnyRole(array $userRoles, array $allowedRoles): bool
     {

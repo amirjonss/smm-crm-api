@@ -12,7 +12,6 @@ use App\Service\CardSetPositionService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
-
 class CardCreateAction extends AbstractController
 {
     public function __invoke(

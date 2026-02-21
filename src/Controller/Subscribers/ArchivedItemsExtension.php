@@ -19,11 +19,11 @@ class ArchivedItemsExtension implements QueryCollectionExtensionInterface
     ];
 
     public function applyToCollection(
-        QueryBuilder                $queryBuilder,
+        QueryBuilder $queryBuilder,
         QueryNameGeneratorInterface $queryNameGenerator,
-        string                      $resourceClass,
-        Operation                   $operation = null,
-        array                       $context = []
+        string $resourceClass,
+        ?Operation $operation = null,
+        array $context = [],
     ): void {
 
         if (!in_array($resourceClass, self::ARCHIVABLE_ENTITIES, true)) {
@@ -36,10 +36,11 @@ class ArchivedItemsExtension implements QueryCollectionExtensionInterface
         if ($operation?->getExtraProperties()['archived_only'] ?? false) {
             $queryBuilder->andWhere(sprintf('%s.isArchived = :archivedFilter', $rootAlias));
             $queryBuilder->setParameter('archivedFilter', true);
+
             return;
         }
 
-//         Default GetCollection: exclude archived items
+        //         Default GetCollection: exclude archived items
         $queryBuilder->andWhere(sprintf('%s.isArchived = :archivedFilter', $rootAlias));
         $queryBuilder->setParameter('archivedFilter', false);
     }

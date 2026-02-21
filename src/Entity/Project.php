@@ -12,8 +12,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Controller\DeleteAction;
 use App\Component\User\Enum\Roles;
+use App\Controller\DeleteAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\DeletedBySettableInterface;
@@ -23,6 +23,7 @@ use App\Entity\Traits\CreatedUpdatedDeletedAtAndByTrait;
 use App\Repository\ProjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -36,10 +37,10 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
         new GetCollection(),
         new Delete(
             controller: DeleteAction::class,
-            security: "object.getExecutor() == user"
+            security: 'object.getExecutor() == user'
         ),
         new Post(),
-        new Patch(security: "object.getExecutor() == user"),
+        new Patch(security: 'object.getExecutor() == user'),
         new Patch(
             uriTemplate: '/projects/{id}/admin',
             denormalizationContext: ['groups' => ['admin:write']],
@@ -50,12 +51,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
     denormalizationContext: ['groups' => ['project:write']]
 )]
 #[ApiFilter(SearchFilter::class, properties: ['executor.id' => 'exact'])]
-class Project implements
-    CreatedAtSettableInterface,
-    CreatedBySettableInterface,
-    UpdatedAtSettableInterface,
-    UpdatedBySettableInterface,
-    DeletedBySettableInterface
+class Project implements CreatedAtSettableInterface, CreatedBySettableInterface, UpdatedAtSettableInterface, UpdatedBySettableInterface, DeletedBySettableInterface
 {
     use CreatedUpdatedDeletedAtAndByTrait;
     #[ORM\Id]
@@ -83,26 +79,30 @@ class Project implements
     )]
     private ?string $phone = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     #[Groups(['project:read'])]
-    private ?\DateTime $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['project:read'])]
-    private ?\DateTime $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['project:read'])]
+    private ?\DateTimeInterface $deletedAt = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['project:read'])]
-    private ?User $createdBy = null;
+    private ?UserInterface $createdBy = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[Groups(['project:read'])]
-    private ?User $updatedBy = null;
+    private ?UserInterface $updatedBy = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[Groups(['project:read'])]
-    private ?User $deletedBy = null;
+    private ?UserInterface $deletedBy = null;
 
     #[ORM\Column(options: ['default' => true])]
     #[Groups(['project:read', 'admin:write'])]
@@ -200,7 +200,7 @@ class Project implements
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -212,7 +212,7 @@ class Project implements
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
@@ -224,19 +224,19 @@ class Project implements
         return $this;
     }
 
-    public function getCreatedBy(): ?User
+    public function getCreatedBy(): ?UserInterface
     {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(?UserInterface $createdBy): static
+    public function setCreatedBy(?UserInterface $user): static
     {
-        $this->createdBy = $createdBy;
+        $this->createdBy = $user;
 
         return $this;
     }
 
-    public function getUpdatedBy(): ?User
+    public function getUpdatedBy(): ?UserInterface
     {
         return $this->updatedBy;
     }
@@ -248,14 +248,14 @@ class Project implements
         return $this;
     }
 
-    public function getDeletedBy(): ?User
+    public function getDeletedBy(): ?UserInterface
     {
         return $this->deletedBy;
     }
 
-    public function setDeletedBy(?UserInterface $deletedBy): static
+    public function setDeletedBy(?UserInterface $user): static
     {
-        $this->deletedBy = $deletedBy;
+        $this->deletedBy = $user;
 
         return $this;
     }

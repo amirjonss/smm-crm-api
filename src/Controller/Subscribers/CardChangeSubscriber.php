@@ -14,7 +14,6 @@ use App\Event\Card\CardRenamedEvent;
 use App\Event\Card\CardSetDeadlineEvent;
 use App\Event\Card\CardStatusChangedEvent;
 use App\Event\Card\CardUnarchivedEvent;
-use App\Repository\CardRepository;
 use App\Service\CardSetPositionService;
 use App\Validator\Card\CardChangeStatusValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -96,8 +95,8 @@ class CardChangeSubscriber implements EventSubscriberInterface
     public function changeDeadlineAction(Card $oldCard, Card $newCard): void
     {
         if ($oldCard->getDeadline() !== null && $newCard->getDeadline() !== null && $oldCard->getDeadline()->format(
-                'd.m.Y'
-            ) !== $newCard->getDeadline()->format('d.m.Y')) {
+            'd.m.Y'
+        ) !== $newCard->getDeadline()->format('d.m.Y')) {
             $this->eventDispatcher->dispatch(
                 new CardChangedDeadlineEvent($oldCard, $newCard, $this->currentUser->getUser())
             );

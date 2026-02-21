@@ -48,6 +48,10 @@ php-cs-fixer:
 phpstan:
     stage: lint
     image: $CI_REGISTRY_IMAGE/ci-php:8.3
+    cache:
+        key: ${CI_COMMIT_REF_SLUG}
+        paths:
+            - vendor/
     script:
         - composer install --no-interaction --no-progress --prefer-dist --no-scripts
         - composer lint:phpstan

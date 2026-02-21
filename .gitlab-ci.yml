@@ -54,6 +54,7 @@ phpstan:
             - vendor/
     script:
         - composer install --no-interaction --no-progress --prefer-dist --no-scripts
+        - php bin/console cache:warmup --env=dev
         - composer lint:phpstan
 
 deploy-dev-job:

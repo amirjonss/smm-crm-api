@@ -10,16 +10,14 @@ use App\Repository\UserRepository;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Class CheckEmailController
- *
- * @package App\Controller
+ * Class CheckEmailController.
  */
 class UserIsUniqueEmailAction extends AbstractController
 {
     public function __invoke(User $data, UserRepository $userRepository): Response
     {
         return $this->responseNormalized([
-            'isUnique' => null === $userRepository->findOneByEmail($data->getEmail())
+            'isUnique' => null === $userRepository->findOneByEmail($data->getEmail()),
         ]);
     }
 }

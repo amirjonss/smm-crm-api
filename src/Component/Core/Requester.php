@@ -6,14 +6,12 @@ namespace App\Component\Core;
 
 use App\Controller\Base\Constants\ResponseFormat;
 use Psr\Log\LoggerInterface;
-use RuntimeException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
-use Throwable;
 
 class Requester
 {
@@ -26,7 +24,7 @@ class Requester
         LoggerInterface $logger,
         KernelInterface $kernel,
         HttpClientInterface $httpClient,
-        SerializerInterface $serializer
+        SerializerInterface $serializer,
     ) {
         $this->logger = $logger;
         $this->kernel = $kernel;
@@ -39,7 +37,7 @@ class Requester
         string $type,
         array $options = [],
         bool $isUrlEnvVar = true,
-        array $urlContext = []
+        array $urlContext = [],
     ): ResponseInterface {
         $rawUrl = $isUrlEnvVar ? $this->getEnv($url) : $url;
 
@@ -51,7 +49,7 @@ class Requester
             $this->getLogger()->info(
                 'request to url: {url}, with options: {options}',
                 [
-                    'url'     => $rawUrl,
+                    'url' => $rawUrl,
                     'options' => $this->recursiveImplode(', ', $options),
                 ]
             );
@@ -59,7 +57,7 @@ class Requester
             $response = $this->getHttpClient()->request($type, $rawUrl, $options);
         } catch (TransportExceptionInterface $e) {
             $this->getLogger()->error($e->getMessage());
-            throw new RuntimeException($e->getMessage());
+            throw new \RuntimeException($e->getMessage());
         }
 
         return $response;
@@ -79,9 +77,10 @@ class Requester
             }
 
             $this->getLogger()->info('HTTP Status: {code}', ['code' => $response->getStatusCode()]);
+
             return false;
         } catch (TransportExceptionInterface $e) {
-            throw new RuntimeException($e->getMessage());
+            throw new \RuntimeException($e->getMessage());
         }
     }
 
@@ -89,15 +88,15 @@ class Requester
     {
         try {
             return $response->getContent(true);
-        } catch (Throwable $e) {
-            throw new RuntimeException($e->getMessage());
+        } catch (\Throwable $e) {
+            throw new \RuntimeException($e->getMessage());
         }
     }
 
     public function responseToDto(
         ResponseInterface $response,
         string $dtoClass,
-        string $format = ResponseFormat::JSONLD
+        string $format = ResponseFormat::JSONLD,
     ): object {
         return $this->getSerializer()->deserialize($this->getContent($response), $dtoClass, $format);
     }
@@ -125,6 +124,7 @@ class Requester
     private function replaceUrlContext(string $url, array $context): string
     {
         $res = str_replace(array_keys($context), $context, $url);
+
         return str_replace(['{', '}'], '', $res);
     }
 

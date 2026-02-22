@@ -19,7 +19,7 @@ class JwtUserDto implements JWTUserInterface
         $this->roles = $roles;
     }
 
-    public static function createFromPayload($username, array $payload): JwtUserDto
+    public static function createFromPayload($username, array $payload): self
     {
         return new self(
             $payload['id'],
@@ -62,6 +62,6 @@ class JwtUserDto implements JWTUserInterface
 
     public function getUserIdentifier(): string
     {
-        return (string)$this->getId();
+        return (string) $this->getId();
     }
 }

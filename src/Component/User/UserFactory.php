@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Component\User;
 
 use App\Entity\User;
-use DateTime;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UserFactory
@@ -18,7 +17,7 @@ class UserFactory
     {
         $user = new User();
         $user->setEmail($email);
-        $user->setCreatedAt(new DateTime());
+        $user->setCreatedAt(new \DateTime());
         $user->setPassword($this->passwordEncoder->hashPassword($user, $password));
         $user->setGivenName($givenName);
 

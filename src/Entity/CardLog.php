@@ -10,7 +10,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Post;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Repository\CardLogRepository;
@@ -31,9 +30,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'createdAt'])]
 #[ApiFilter(SearchFilter::class, properties: ['card.id' => 'exact'])]
-class CardLog implements
-    CreatedAtSettableInterface,
-    CreatedBySettableInterface
+class CardLog implements CreatedAtSettableInterface, CreatedBySettableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -54,12 +51,12 @@ class CardLog implements
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['card-log:read'])]
-    private ?\DateTime $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     #[Groups(['card-log:read'])]
-    private ?User $createdBy = null;
+    private ?UserInterface $createdBy = null;
 
     public function getId(): ?int
     {
@@ -90,7 +87,7 @@ class CardLog implements
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -102,14 +99,14 @@ class CardLog implements
         return $this;
     }
 
-    public function getCreatedBy(): ?User
+    public function getCreatedBy(): ?UserInterface
     {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(?UserInterface $createdBy): static
+    public function setCreatedBy(?UserInterface $user): static
     {
-        $this->createdBy = $createdBy;
+        $this->createdBy = $user;
 
         return $this;
     }

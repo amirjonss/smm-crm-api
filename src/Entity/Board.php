@@ -40,11 +40,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'position', 'createdAt'])]
 #[ApiFilter(SearchFilter::class, properties: ['name' => 'partial'])]
-class Board implements
-    CreatedAtSettableInterface,
-    CreatedBySettableInterface,
-    UpdatedAtSettableInterface,
-    UpdatedBySettableInterface
+class Board implements CreatedAtSettableInterface, CreatedBySettableInterface, UpdatedAtSettableInterface, UpdatedBySettableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -64,20 +60,20 @@ class Board implements
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['board:read'])]
-    private ?\DateTime $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['board:read'])]
-    private ?\DateTime $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     #[Groups(['board:read'])]
-    private ?User $createdBy = null;
+    private ?UserInterface $createdBy = null;
 
     #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
-    private ?User $updatedBy = null;
+    private ?UserInterface $updatedBy = null;
 
     /** @var Collection<int, BoardList> */
     #[ORM\OneToMany(targetEntity: BoardList::class, mappedBy: 'board', orphanRemoval: true)]
@@ -119,7 +115,7 @@ class Board implements
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTime
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -131,7 +127,7 @@ class Board implements
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
@@ -143,19 +139,19 @@ class Board implements
         return $this;
     }
 
-    public function getCreatedBy(): ?User
+    public function getCreatedBy(): ?UserInterface
     {
         return $this->createdBy;
     }
 
-    public function setCreatedBy(?UserInterface $createdBy): static
+    public function setCreatedBy(?UserInterface $user): static
     {
-        $this->createdBy = $createdBy;
+        $this->createdBy = $user;
 
         return $this;
     }
 
-    public function getUpdatedBy(): ?User
+    public function getUpdatedBy(): ?UserInterface
     {
         return $this->updatedBy;
     }
@@ -193,5 +189,4 @@ class Board implements
 
         return $this;
     }
-
 }

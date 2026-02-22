@@ -14,22 +14,18 @@ use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class AbstractController extends \Symfony\Bundle\FrameworkBundle\Controller\AbstractController
 {
-    private SerializerInterface $serializer;
-    private ValidatorInterface  $validator;
-    private CurrentUser         $currentUser;
-
     public function __construct(
-        SerializerInterface $serializer,
-        ValidatorInterface $validator,
-        CurrentUser $currentUser
+        private readonly SerializerInterface $serializer,
+        private readonly ValidatorInterface $validator,
+        private readonly CurrentUser $currentUser,
+        private readonly NormalizerInterface $normalizer,
     ) {
-        $this->serializer = $serializer;
-        $this->validator = $validator;
-        $this->currentUser = $currentUser;
     }
 
     /**
@@ -42,7 +38,8 @@ class AbstractController extends \Symfony\Bundle\FrameworkBundle\Controller\Abst
 
     /**
      * @param object $data
-     * @param array $context
+     * @param array  $context
+     *
      * @throws ValidationException
      */
     protected function validate(object $data, array $context = []): void
@@ -58,18 +55,24 @@ class AbstractController extends \Symfony\Bundle\FrameworkBundle\Controller\Abst
         return $this->serializer;
     }
 
+    protected function getNormalizer(): NormalizerInterface
+    {
+        return $this->normalizer;
+    }
+
     protected function response(
         mixed $content,
         int $status = Response::HTTP_OK,
-        string $format = ResponseFormat::JSONLD
+        string $format = ResponseFormat::JSONLD,
     ): Response {
-        return (new Response(
+        return new Response(
             $this->getSerializer()->serialize($content, $format), $status
-        ));
+        );
     }
 
     /**
      * @param int $status
+     *
      * @return Response
      */
     protected function responseEmpty(int $status = Response::HTTP_NO_CONTENT): Response
@@ -78,30 +81,37 @@ class AbstractController extends \Symfony\Bundle\FrameworkBundle\Controller\Abst
     }
 
     /**
-     * @param mixed $content
-     * @param int $status
+     * @param mixed  $content
+     * @param int    $status
      * @param string $format
+     *
      * @return Response
+     *
+     * @throws ExceptionInterface
      */
     protected function responseNormalized(
         mixed $content,
         int $status = Response::HTTP_OK,
-        string $format = ResponseFormat::JSONLD
+        string $format = ResponseFormat::JSONLD,
     ): Response {
-        $result = $this->getSerializer()->normalize($content, $format);
+        $result = $this->getNormalizer()->normalize($content, $format);
+
         return $this->response($result, $status);
     }
 
     /**
      * @param Request $request
-     * @param string $dtoClass
-     * @param string $format
+     * @param string  $dtoClass
+     * @param string  $format
+     *
      * @return object
+     *
+     * @throws ExceptionInterface
      */
     protected function getDtoFromRequest(
         Request $request,
         string $dtoClass,
-        string $format = ResponseFormat::JSONLD
+        string $format = ResponseFormat::JSONLD,
     ): object {
         return $this->getSerializer()->deserialize(
             $request->getContent(),
@@ -138,6 +148,5 @@ class AbstractController extends \Symfony\Bundle\FrameworkBundle\Controller\Abst
     protected function throwNotFoundException($text = 'Object is not found'): never
     {
         throw new NotFoundHttpException($text);
-
     }
 }

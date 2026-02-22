@@ -6,9 +6,6 @@ namespace App\Component\User;
 
 use App\Component\User\Dtos\TokensDto;
 use App\Entity\User;
-use DateInterval;
-use DateTime;
-use Exception;
 use Lexik\Bundle\JWTAuthenticationBundle\Encoder\JWTEncoderInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Exception\JWTEncodeFailureException;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -21,7 +18,9 @@ class TokensCreator
 
     /**
      * @param User $user
+     *
      * @return TokensDto
+     *
      * @throws JWTEncodeFailureException
      */
     public function create(User $user): TokensDto
@@ -31,18 +30,20 @@ class TokensCreator
 
     /**
      * @param User $user
+     *
      * @return string
+     *
      * @throws JWTEncodeFailureException
-     * @throws Exception
+     * @throws \Exception
      */
     private function generateAccessToken(User $user): string
     {
-        $expInterval = new DateInterval($this->getEnv('tokens_creator.access_expiration_period'));
+        $expInterval = new \DateInterval($this->getEnv('tokens_creator.access_expiration_period'));
 
         return $this->tokenEncoder->encode(
             [
-                'iat' => (new DateTime())->getTimestamp(),
-                'exp' => (new DateTime())->add($expInterval)->getTimestamp(),
+                'iat' => (new \DateTime())->getTimestamp(),
+                'exp' => (new \DateTime())->add($expInterval)->getTimestamp(),
                 'id' => $user->getId(),
                 'username' => $user->getEmail(),
                 'roles' => $user->getRoles(),
@@ -57,19 +58,21 @@ class TokensCreator
 
     /**
      * @param int $userId
+     *
      * @return string
+     *
      * @throws JWTEncodeFailureException
-     * @throws Exception
+     * @throws \Exception
      */
     private function generateRefreshToken(int $userId): string
     {
-        $expInterval = new DateInterval($this->getEnv('tokens_creator.refresh_expiration_period'));
+        $expInterval = new \DateInterval($this->getEnv('tokens_creator.refresh_expiration_period'));
 
         return $this->tokenEncoder->encode(
             [
                 'id' => $userId,
-                'iat' => (new DateTime())->getTimestamp(),
-                'exp' => (new DateTime())->add($expInterval)->getTimestamp(),
+                'iat' => (new \DateTime())->getTimestamp(),
+                'exp' => (new \DateTime())->add($expInterval)->getTimestamp(),
             ]
         );
     }

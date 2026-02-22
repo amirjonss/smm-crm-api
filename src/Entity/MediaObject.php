@@ -35,15 +35,15 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
                                 'properties' => [
                                     'file' => [
                                         'type' => 'string',
-                                        'format' => 'binary'
-                                    ]
-                                ]
-                            ]
-                        ]
+                                        'format' => 'binary',
+                                    ],
+                                ],
+                            ],
+                        ],
                     ])
                 )
             )
-        )
+        ),
     ],
     outputFormats: ['jsonld' => ['application/ld+json']],
     normalizationContext: ['groups' => ['media_object:read']]

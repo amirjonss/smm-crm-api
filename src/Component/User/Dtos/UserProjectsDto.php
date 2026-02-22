@@ -14,7 +14,7 @@ readonly class UserProjectsDto
         #[Groups(['user:projects:read'])]
         private ?string $familyName,
         #[Groups(['user:projects:read'])]
-        private array $projects
+        private array $projects,
     ) {
     }
 

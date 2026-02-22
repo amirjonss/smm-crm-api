@@ -12,7 +12,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Throwable;
 
 #[AsCommand(
     name: 'ask:install',
@@ -27,7 +26,7 @@ class AskInstallCommand extends Command implements GetOutputInterface
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        string $name = null
+        ?string $name = null,
     ) {
         parent::__construct($name);
     }
@@ -58,8 +57,8 @@ class AskInstallCommand extends Command implements GetOutputInterface
 
     private function waitConnection(): void
     {
-        $this->symfonyIO->writeln("Try to connect to database");
-        $this->symfonyIO->writeln("Please, be patiently. First running of MySQL server requires much time");
+        $this->symfonyIO->writeln('Try to connect to database');
+        $this->symfonyIO->writeln('Please, be patiently. First running of MySQL server requires much time');
 
         while (true) {
             try {
@@ -67,7 +66,7 @@ class AskInstallCommand extends Command implements GetOutputInterface
                 if ($this->entityManager->getConnection()->isConnected()) {
                     return;
                 }
-            } catch (Throwable) {
+            } catch (\Throwable) {
                 sleep(5);
             }
         }

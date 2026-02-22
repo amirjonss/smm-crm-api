@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Command;
 
 use App\Repository\ContentPlanRepository;
-use RuntimeException;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -21,10 +20,9 @@ class SendDailyContentPlansCommand extends Command
 {
     public function __construct(
         private ContentPlanRepository $contentPlanRepository,
-        private string                $telegramBotToken,
-        private array                 $telegramChatId
-    )
-    {
+        private string $telegramBotToken,
+        private array $telegramChatId,
+    ) {
         parent::__construct();
     }
 
@@ -46,21 +44,24 @@ class SendDailyContentPlansCommand extends Command
 
         if (empty($chatId)) {
             $io->error('The --chatId option is required.');
+
             return Command::FAILURE;
         }
 
         if (empty($this->telegramBotToken)) {
             $io->error('TELEGRAM_BOT_TOKEN is not configured in .env');
+
             return Command::FAILURE;
         }
 
         $plans = $this->contentPlanRepository->findTodayContentPlans();
         $date = date('d.m.Y');
-        $dayOfWeek = $this->getDayOfWeekInUzbek((int)date('w'));
+        $dayOfWeek = $this->getDayOfWeekInUzbek((int) date('w'));
 
         if (empty($plans)) {
             $io->info('No content plans for today.');
             $this->sendMessage($this->telegramBotToken, $chatId, "<b>{$dayOfWeek} - {$date}</b>\n\nНа сегодня планов нет.");
+
             return Command::SUCCESS;
         }
 
@@ -84,7 +85,7 @@ class SendDailyContentPlansCommand extends Command
         }
 
         foreach ($projectPlans as $projectName => $platforms) {
-            $message .= "<b>" . htmlspecialchars($projectName) . "</b>\n";
+            $message .= '<b>' . htmlspecialchars($projectName) . "</b>\n";
 
             $platformParts = [];
             $platformOrder = ['INSTAGRAM', 'TELEGRAM', 'FACEBOOK', 'YOUTUBE'];
@@ -120,8 +121,9 @@ class SendDailyContentPlansCommand extends Command
         try {
             $this->sendMessage($this->telegramBotToken, $chatId, $message);
             $io->success('Message sent to Telegram.');
-        } catch (RuntimeException $e) {
+        } catch (\RuntimeException $e) {
             $io->error($e->getMessage());
+
             return Command::FAILURE;
         }
 
@@ -157,7 +159,7 @@ class SendDailyContentPlansCommand extends Command
                 'header' => "Content-type: application/x-www-form-urlencoded\r\n",
                 'method' => 'POST',
                 'content' => http_build_query($data),
-                'ignore_errors' => true
+                'ignore_errors' => true,
             ],
         ];
 
@@ -165,13 +167,13 @@ class SendDailyContentPlansCommand extends Command
         $result = @file_get_contents($url, false, $context);
 
         if ($result === false) {
-            throw new RuntimeException("Failed to connect to Telegram API.");
+            throw new \RuntimeException('Failed to connect to Telegram API.');
         }
 
         $response = json_decode($result, true);
 
         if (($response['ok'] ?? false) !== true) {
-            throw new RuntimeException("Telegram API Error: " . ($response['description'] ?? 'Unknown error'));
+            throw new \RuntimeException('Telegram API Error: ' . ($response['description'] ?? 'Unknown error'));
         }
     }
 }

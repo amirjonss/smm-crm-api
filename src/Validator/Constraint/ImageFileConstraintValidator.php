@@ -31,6 +31,7 @@ class ImageFileConstraintValidator extends ConstraintValidator
                 ->setParameter('{{ size }}', (string) round($value->getSize() / 1024 / 1024, 2))
                 ->setParameter('{{ limit }}', (string) ($constraint->maxSize / 1024 / 1024))
                 ->addViolation();
+
             return;
         }
 

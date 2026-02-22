@@ -6,7 +6,6 @@ namespace App\Command;
 
 use App\Command\Interfaces\GetOutputInterface;
 use App\Command\Traits\RunCommandTrait;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,7 +35,7 @@ class AskGenerateJWTKeysCommand extends Command implements GetOutputInterface
 
     protected function execute(
         InputInterface $input,
-        OutputInterface $output
+        OutputInterface $output,
     ): int {
         $this->symfonyIO = new SymfonyStyle($input, $output);
         $this->output = $output;

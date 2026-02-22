@@ -1,19 +1,7 @@
-# This file is a template, and might need editing before it works on your project.
-# To contribute improvements to CI/CD templates, please follow the Development guide at:
-# https://docs.gitlab.com/ee/development/cicd/templates.html
-# This specific template is located at:
-# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
-
-# This is a sample GitLab CI/CD configuration file that should run without any modifications.
-# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
-# it uses echo commands to simulate the pipeline execution.
-#
-# A pipeline is composed of independent jobs that run scripts, grouped into stages.
-# Stages run in sequential order, but jobs within stages run in parallel.
-#
-# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
-
 stages:
+    - build
+    - lint
+    - test
     - deploy
 
 before_script:
@@ -22,10 +10,94 @@ before_script:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
 #
+
+build-ci-image:
+    stage: build
+    image: docker:24
+    services: [docker:24-dind]
+    variables:
+        DOCKER_TLS_CERTDIR: ""
+    script:
+        - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
+        - docker build -t $CI_REGISTRY_IMAGE/ci-php:8.3 -f docker/ci/Dockerfile .
+        - docker push $CI_REGISTRY_IMAGE/ci-php:8.3
+    rules:
+        - changes:
+              - docker/ci/*
+
+deps:
+    stage: lint
+    image: $CI_REGISTRY_IMAGE/ci-php:8.3
+    script:
+        - composer install --no-interaction --no-progress --prefer-dist --no-scripts
+    artifacts:
+        paths:
+            - vendor/
+        expire_in: 1 hour
+
+php-cs-fixer:
+    stage: lint
+    image: $CI_REGISTRY_IMAGE/ci-php:8.3
+    dependencies:
+        - deps
+    script:
+        - composer lint:fixer:check
+
+phpstan:
+    stage: lint
+    image: $CI_REGISTRY_IMAGE/ci-php:8.3
+    dependencies:
+        - deps
+    services:
+        - name: mysql:8.0
+          alias: db
+    variables:
+        APP_ENV: dev
+        APP_DEBUG: "1"
+        MYSQL_DATABASE: app
+        MYSQL_USER: app
+        MYSQL_PASSWORD: app
+        MYSQL_ROOT_PASSWORD: root
+        DATABASE_URL: "mysql://app:app@db:3306/app?serverVersion=8.0"
+    script:
+        - php bin/console cache:warmup --env=dev --no-optional-warmers
+        - composer lint:phpstan
+
+api-test:
+    stage: test
+    image: $CI_REGISTRY_IMAGE/ci-php:8.3
+    dependencies:
+        - deps
+    services:
+        - name: mysql:8.0
+          alias: db
+        - name: redis:7-alpine
+          alias: redis
+    variables:
+        APP_ENV: test
+        APP_DEBUG: "1"
+        MYSQL_DATABASE: app_test
+        MYSQL_USER: app
+        MYSQL_PASSWORD: app
+        MYSQL_ROOT_PASSWORD: root
+        DATABASE_URL: "mysql://app:app@db:3306/app?serverVersion=8.0"
+    before_script:
+        - apt-get update && apt-get install -y default-mysql-client
+    script:
+        - php bin/console doctrine:database:create --if-not-exists --env=test
+        - php bin/console doctrine:migrations:migrate --no-interaction --env=test
+        - php bin/phpunit
+
 deploy-dev-job:
     stage: deploy
+    dependencies:
+        - build-ci-image
+        - deps
+        - php-cs-fixer
+        - phpstan
     only:
         - dev
+    when: manual
     script:
         - echo "$DEPLOY_PRIVATE_SSH_KEY_PROD" | tr -d '\r' | ssh-add -
         - echo "Deploying the DEV project..."
@@ -42,6 +114,7 @@ deploy-prod-job:
     stage: deploy
     only:
         - master
+    when: manual
     script:
         - echo "${DEPLOY_PRIVATE_SSH_KEY_PROD}" | tr -d '\r' | ssh-add -
         - echo "Deploying the PROD project..."
@@ -54,3 +127,9 @@ deploy-prod-job:
             docker compose exec php composer install --no-scripts --optimize-autoloader &&
             docker compose exec php bin/console ask:deploy"
 #           docker compose --profile backup up -d --build  need for backup
+
+default:
+    cache:
+        key: ${CI_COMMIT_REF_SLUG}
+        paths:
+            - vendor/

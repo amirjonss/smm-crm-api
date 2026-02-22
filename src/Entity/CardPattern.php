@@ -62,7 +62,7 @@ class CardPattern implements UpdatedAtSettableInterface
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['card-pattern:read'])]
-    private ?\DateTime $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['card-pattern:read', 'card-pattern:write'])]
@@ -93,7 +93,7 @@ class CardPattern implements UpdatedAtSettableInterface
         return $this;
     }
 
-    public function getUpdatedAt(): ?\DateTime
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }

@@ -29,7 +29,7 @@ class ParameterGetter
      */
     public function getString(string $name): string
     {
-        return (string)$this->get($name);
+        return (string) $this->get($name);
     }
 
     /**
@@ -38,7 +38,7 @@ class ParameterGetter
      */
     public function getInt(string $name): int
     {
-        return (int)$this->get($name);
+        return (int) $this->get($name);
     }
 
     /**
@@ -47,7 +47,7 @@ class ParameterGetter
      */
     public function getArray(string $name): array
     {
-        return (array)$this->get($name);
+        return (array) $this->get($name);
     }
 
     /**
@@ -62,7 +62,7 @@ class ParameterGetter
             return false;
         }
 
-        return (bool)$value;
+        return (bool) $value;
     }
 
     /**
@@ -71,6 +71,6 @@ class ParameterGetter
      */
     public function getFloat(string $name): float
     {
-        return (float)$this->get($name);
+        return (float) $this->get($name);
     }
 }

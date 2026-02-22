@@ -25,7 +25,7 @@ class AskUserCreateCommand extends Command
         private UserCreateAction $createAction,
         private UserFactory $userFactory,
         private UserManager $userManager,
-        private UserRepository $userRepository
+        private UserRepository $userRepository,
     ) {
         parent::__construct();
     }
@@ -40,7 +40,6 @@ class AskUserCreateCommand extends Command
             '            ',
         ]);
         $helper = new QuestionHelper();
-
 
         $emailQuestion = new Question('write you email: ' . PHP_EOL);
         $passwordQuestion = new Question('write your password: ' . PHP_EOL);

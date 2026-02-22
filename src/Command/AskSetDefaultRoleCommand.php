@@ -19,7 +19,7 @@ class AskSetDefaultRoleCommand extends Command
     public function __construct(
         private UserRepository $userRepository,
         private UserManager $userManager,
-        string $name = null
+        ?string $name = null,
     ) {
         parent::__construct($name);
     }

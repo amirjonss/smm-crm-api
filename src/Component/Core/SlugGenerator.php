@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Component\Core;
 
 use Random\RandomException;
-use RuntimeException;
 
 final class SlugGenerator
 {
@@ -19,7 +18,7 @@ final class SlugGenerator
     public function generateUnique(
         callable $isUnique,
         int $startLength = self::MIN_LENGTH,
-        int $maxLength = self::MAX_LENGTH
+        int $maxLength = self::MAX_LENGTH,
     ): string {
         $length = $startLength;
 
@@ -33,7 +32,7 @@ final class SlugGenerator
             $length++;
         }
 
-        throw new RuntimeException('Unable to generate unique slug after ' . $maxLength . ' attempts');
+        throw new \RuntimeException('Unable to generate unique slug after ' . $maxLength . ' attempts');
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace App\Entity\Traits;
 
-use DateTimeInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 trait DeletedByAccessorsTrait

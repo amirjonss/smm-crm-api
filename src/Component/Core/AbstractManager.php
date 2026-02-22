@@ -6,7 +6,6 @@ namespace App\Component\Core;
 
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\UpdatedAtSettableInterface;
-use DateTime;
 use Doctrine\ORM\EntityManagerInterface;
 
 abstract class AbstractManager
@@ -36,9 +35,9 @@ abstract class AbstractManager
     private function updateCreatedOrUpdatedDates(object $entity): void
     {
         if ($entity->getId() === null && $entity instanceof CreatedAtSettableInterface) {
-            $entity->setCreatedAt(new DateTime());
+            $entity->setCreatedAt(new \DateTime());
         } elseif ($entity->getId() !== null && $entity instanceof UpdatedAtSettableInterface) {
-            $entity->setUpdatedAt(new DateTime());
+            $entity->setUpdatedAt(new \DateTime());
         }
     }
 }

@@ -22,7 +22,6 @@ use App\Entity\Interfaces\UpdatedAtSettableInterface;
 use App\Entity\Interfaces\UpdatedBySettableInterface;
 use App\Entity\Traits\CreatedUpdatedDeletedAtAndByTrait;
 use App\Repository\ContentPlanRepository;
-use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -38,11 +37,11 @@ use Symfony\Component\Validator\Constraints as Assert;
         new GetCollection(),
         new Delete(
             controller: DeleteAction::class,
-            security: "object.getProject().getExecutor() == user"
+            security: 'object.getProject().getExecutor() == user'
         ),
         new Post(),
         new Patch(
-            security: "object.getProject().getExecutor() == user"
+            security: 'object.getProject().getExecutor() == user'
         ),
     ],
     normalizationContext: ['groups' => ['content-plan:read']],
@@ -52,12 +51,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ApiFilter(SearchFilter::class, properties: ['project.id' => 'exact', 'date' => 'exact'])]
 #[ApiFilter(DateFilter::class, properties: ['date'])]
 #[ApiFilter(OrderFilter::class, properties: ['position', 'date', 'id'])]
-class ContentPlan implements
-    CreatedAtSettableInterface,
-    CreatedBySettableInterface,
-    UpdatedAtSettableInterface,
-    UpdatedBySettableInterface,
-    DeletedBySettableInterface
+class ContentPlan implements CreatedAtSettableInterface, CreatedBySettableInterface, UpdatedAtSettableInterface, UpdatedBySettableInterface, DeletedBySettableInterface
 {
     use CreatedUpdatedDeletedAtAndByTrait;
 
@@ -81,7 +75,7 @@ class ContentPlan implements
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     #[Groups(['content-plan:read', 'content-plan:write'])]
     #[Assert\NotBlank]
-    private ?DateTime $date = null;
+    private ?\DateTime $date = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['content-plan:read', 'content-plan:write'])]
@@ -93,26 +87,30 @@ class ContentPlan implements
     #[Assert\NotBlank]
     private ?Project $project = null;
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: false)]
     #[Groups(['content-plan:read'])]
-    private ?DateTime $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
-    #[ORM\Column(nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['content-plan:read'])]
-    private ?DateTime $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['content-plan:read'])]
+    private ?\DateTimeInterface $deletedAt = null;
+
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['content-plan:read'])]
-    private ?User $createdBy = null;
+    private ?UserInterface $createdBy = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[Groups(['content-plan:read'])]
-    private ?User $updatedBy = null;
+    private ?UserInterface $updatedBy = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: User::class)]
     #[Groups(['content-plan:read'])]
-    private ?User $deletedBy = null;
+    private ?UserInterface $deletedBy = null;
 
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     #[Groups(['content-plan:read', 'content-plan:write'])]
@@ -120,7 +118,7 @@ class ContentPlan implements
 
     #[ORM\ManyToMany(targetEntity: ContentPlanPlatform::class, inversedBy: 'contentPlans', cascade: [
         'persist',
-        'remove'
+        'remove',
     ])]
     #[Groups(['content-plan:read', 'content-plan:write'])]
     private Collection $platforms;
@@ -171,12 +169,12 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getDate(): ?DateTime
+    public function getDate(): ?\DateTime
     {
         return $this->date;
     }
 
-    public function setDate(DateTime $date): static
+    public function setDate(\DateTime $date): static
     {
         $this->date = $date;
 
@@ -207,7 +205,7 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getCreatedAt(): ?DateTime
+    public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
     }
@@ -219,7 +217,7 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getUpdatedAt(): ?DateTime
+    public function getUpdatedAt(): ?\DateTimeInterface
     {
         return $this->updatedAt;
     }
@@ -231,7 +229,7 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getCreatedBy(): ?User
+    public function getCreatedBy(): ?UserInterface
     {
         return $this->createdBy;
     }
@@ -243,7 +241,7 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getUpdatedBy(): ?User
+    public function getUpdatedBy(): ?UserInterface
     {
         return $this->updatedBy;
     }
@@ -255,7 +253,7 @@ class ContentPlan implements
         return $this;
     }
 
-    public function getDeletedBy(): ?User
+    public function getDeletedBy(): ?UserInterface
     {
         return $this->deletedBy;
     }

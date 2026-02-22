@@ -14,9 +14,10 @@ class DeleteAction extends AbstractController
 {
     public function __invoke(
         DeletedAtSettableInterface|DeletedBySettableInterface $data,
-        MarkEntityAsDeleted $markEntityAsDeleted
+        MarkEntityAsDeleted $markEntityAsDeleted,
     ): Response {
         $markEntityAsDeleted->mark($data, true);
+
         return $this->responseEmpty();
     }
 }

@@ -13,7 +13,7 @@ class CardExecutorDto
     public function __construct(
         #[Groups(['card:executor:write'])]
         #[Assert\NotBlank]
-        private User $executor
+        private User $executor,
     ) {
     }
 

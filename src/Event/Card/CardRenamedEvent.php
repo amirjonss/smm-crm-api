@@ -14,7 +14,7 @@ class CardRenamedEvent extends Event
         private Card $card,
         private User $user,
         private string $oldName,
-        private string $newName
+        private string $newName,
     ) {
     }
 

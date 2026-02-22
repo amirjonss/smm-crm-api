@@ -52,8 +52,13 @@ phpstan:
         key: ${CI_COMMIT_REF_SLUG}
         paths:
             - vendor/
+    variables:
+        APP_ENV: dev
+        APP_DEBUG: "1"
     script:
         - composer install --no-interaction --no-progress --prefer-dist --no-scripts
+        - php bin/console cache:clear --env=dev
+        - php bin/console cache:warmup --env=dev
         - composer lint:phpstan
 
 deploy-dev-job:

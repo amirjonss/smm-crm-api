@@ -14,7 +14,6 @@ build-ci-image:
     stage: build
     image: docker:24
     services: [docker:24-dind]
-    privileged: true
     variables:
         DOCKER_TLS_CERTDIR: ""
     script:

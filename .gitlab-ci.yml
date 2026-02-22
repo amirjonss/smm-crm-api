@@ -71,6 +71,8 @@ api-test:
     services:
         - name: mysql:8.0
           alias: db
+        - name: redis:7-alpine
+          alias: redis
     variables:
         APP_ENV: test
         APP_DEBUG: "1"

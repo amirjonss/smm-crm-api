@@ -80,7 +80,6 @@ api-test:
 
     before_script:
         - apt-get update && apt-get install -y default-mysql-client
-        - until mysqladmin ping -h db --silent; do sleep 1; done
 
     script:
         - php bin/console doctrine:database:create --if-not-exists --env=test

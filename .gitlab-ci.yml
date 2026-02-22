@@ -13,23 +13,41 @@ before_script:
 build-ci-image:
     stage: build
     image: docker:24
-    services:
-        - docker:24-dind
+    services: [docker:24-dind]
+    privileged: true
+    variables:
+        DOCKER_TLS_CERTDIR: ""
     script:
         - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
         - docker build -t $CI_REGISTRY_IMAGE/ci-php:8.3 -f docker/ci/Dockerfile .
         - docker push $CI_REGISTRY_IMAGE/ci-php:8.3
+    rules:
+        - changes:
+              - docker/ci/*
 
-php-cs-fixer:
+deps:
     stage: lint
     image: $CI_REGISTRY_IMAGE/ci-php:8.3
     script:
         - composer install --no-interaction --no-progress --prefer-dist --no-scripts
+    artifacts:
+        paths:
+            - vendor/
+        expire_in: 1 hour
+
+php-cs-fixer:
+    stage: lint
+    image: $CI_REGISTRY_IMAGE/ci-php:8.3
+    dependencies:
+        - deps
+    script:
         - composer lint:fixer:check
 
 phpstan:
     stage: lint
     image: $CI_REGISTRY_IMAGE/ci-php:8.3
+    dependencies:
+        - deps
     services:
         - name: mysql:8.0
           alias: db
@@ -42,14 +60,14 @@ phpstan:
         MYSQL_ROOT_PASSWORD: root
         DATABASE_URL: "mysql://app:app@db:3306/app?serverVersion=8.0"
     script:
-        - composer install --no-interaction --no-progress --prefer-dist --no-scripts
-        - php bin/console cache:warmup --env=dev
+        - php bin/console cache:warmup --env=dev --no-optional-warmers
         - composer lint:phpstan
 
 deploy-dev-job:
     stage: deploy
     dependencies:
         - build-ci-image
+        - deps
         - php-cs-fixer
         - phpstan
     only:
@@ -87,5 +105,6 @@ deploy-prod-job:
 
 default:
     cache:
+        key: ${CI_COMMIT_REF_SLUG}
         paths:
             - vendor/

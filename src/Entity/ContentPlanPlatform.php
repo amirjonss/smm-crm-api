@@ -7,7 +7,6 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Entity\Traits\CreatedUpdatedDeletedAtAndByTrait;
 use App\Repository\ContentPlanPlatformRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,17 +20,13 @@ use Symfony\Component\Validator\Constraints as Assert;
         new Get(
             security: "is_granted('ROLE_ADMIN') or object.getCreatedBy() == user"
         ),
-        new GetCollection(
-            security: "is_granted('ROLE_USER')"
-        ),
+        new GetCollection(),
     ],
     normalizationContext: ['groups' => ['content-plan-platform:read']],
     denormalizationContext: ['groups' => ['content-plan-platform:write']]
 )]
 class ContentPlanPlatform
 {
-    use CreatedUpdatedDeletedAtAndByTrait;
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

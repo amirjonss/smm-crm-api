@@ -13,7 +13,7 @@ class TokensDto
         private string $accessToken,
 
         #[Groups(['users:read'])]
-        private string $refreshToken
+        private string $refreshToken,
     ) {
     }
 

@@ -7,11 +7,10 @@ namespace App\Controller\Subscribers;
 use ApiPlatform\Symfony\EventListener\EventPriorities;
 use App\Controller\Base\AbstractController;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
+use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\UpdatedAtSettableInterface;
 use App\Entity\Interfaces\UpdatedBySettableInterface;
-use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Project;
-use DateTime;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ViewEvent;
@@ -56,7 +55,7 @@ class WriteSubscriber extends AbstractController implements EventSubscriberInter
         }
 
         if ($model instanceof CreatedAtSettableInterface) {
-            $model->setCreatedAt(new DateTime());
+            $model->setCreatedAt(new \DateTime());
         }
     }
 
@@ -67,7 +66,7 @@ class WriteSubscriber extends AbstractController implements EventSubscriberInter
         }
 
         if ($model instanceof UpdatedAtSettableInterface) {
-            $model->setUpdatedAt(new DateTime());
+            $model->setUpdatedAt(new \DateTime());
         }
     }
 

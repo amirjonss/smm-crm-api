@@ -20,7 +20,7 @@ class AskRolesAddToUserCommand extends Command
     public function __construct(
         private UserRepository $userRepository,
         private UserManager $userManager,
-        string $name = null
+        ?string $name = null,
     ) {
         parent::__construct($name);
     }
@@ -39,7 +39,7 @@ class AskRolesAddToUserCommand extends Command
         while ($user === null) {
             $userId = $questionHelper->ask($input, $output, $userIdQuestion);
 
-            $user = $this->userRepository->find((int)$userId);
+            $user = $this->userRepository->find((int) $userId);
 
             if ($user === null) {
                 $io->warning('User is not found by id: #' . $userId);

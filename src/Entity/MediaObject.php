@@ -35,15 +35,15 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
                                 'properties' => [
                                     'file' => [
                                         'type' => 'string',
-                                        'format' => 'binary'
-                                    ]
-                                ]
-                            ]
-                        ]
+                                        'format' => 'binary',
+                                    ],
+                                ],
+                            ],
+                        ],
                     ])
                 )
             )
-        )
+        ),
     ],
     outputFormats: ['jsonld' => ['application/ld+json']],
     normalizationContext: ['groups' => ['media_object:read']]
@@ -51,7 +51,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 class MediaObject
 {
     #[ApiProperty(writable: false, types: ['https://schema.org/image'], )]
-    #[Groups(['media_object:read'])]
+    #[Groups(['media_object:read', 'users:read', 'board-list:read'])]
     public ?string $contentUrl = null;
 
     #[Vich\UploadableField(mapping: 'media_object', fileNameProperty: 'filePath')]

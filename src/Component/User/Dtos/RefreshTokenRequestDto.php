@@ -7,15 +7,13 @@ namespace App\Component\User\Dtos;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
- * Class RefreshTokenDto
- *
- * @package App\Component\User\Dtos
+ * Class RefreshTokenDto.
  */
 class RefreshTokenRequestDto
 {
     public function __construct(
         #[Groups(['user:write'])]
-        private string $refreshToken
+        private string $refreshToken,
     ) {
     }
 

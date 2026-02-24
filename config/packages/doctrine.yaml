@@ -28,6 +28,12 @@ doctrine:
             auto_mapping: false
 
 when@test:
+    security:
+        providers:
+            users_in_memory:
+                memory:
+                    users:
+                        admin: { password: password, roles: ROLE_ADMIN }
     doctrine:
         dbal:
             # "TEST_TOKEN" is typically set by ParaTest

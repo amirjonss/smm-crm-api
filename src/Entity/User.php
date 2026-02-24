@@ -16,6 +16,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
 use App\Component\User\Dtos\RefreshTokenRequestDto;
 use App\Component\User\Dtos\TokensDto;
+use App\Component\User\Enum\Roles;
 use App\Controller\DeleteAction;
 use App\Controller\UserAboutMeAction;
 use App\Controller\UserAuthAction;
@@ -33,7 +34,6 @@ use App\Entity\Traits\CreatedAtAccessorsTrait;
 use App\Entity\Traits\DeletedAtAndByAccessorsTrait;
 use App\Entity\Traits\UpdatedAtAndByAccessorsTrait;
 use App\Repository\UserRepository;
-use DateTimeInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -47,7 +47,7 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new GetCollection(
             normalizationContext: ['groups' => ['users:read']],
-            security: "is_granted('ROLE_ADMIN')",
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
         ),
         new Get(
             security: "object == user || is_granted('ROLE_ADMIN')",
@@ -135,27 +135,20 @@ use Symfony\Component\Validator\Constraints as Assert;
     ],
 )]
 #[ApiFilter(OrderFilter::class, properties: ['id', 'createdAt', 'updatedAt', 'email'])]
-#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial'])]
-//#[UniqueEntity('email', message: 'This email is already used')]
+#[ApiFilter(SearchFilter::class, properties: ['id' => 'exact', 'email' => 'partial', 'roles' => 'partial'])]
+// #[UniqueEntity('email', message: 'This email is already used')]
 #[ORM\Entity(repositoryClass: UserRepository::class)]
-class User implements
-    UserInterface,
-    CreatedAtSettableInterface,
-    UpdatedAtSettableInterface,
-    UpdatedBySettableInterface,
-    DeletedAtSettableInterface,
-    DeletedBySettableInterface,
-    PasswordAuthenticatedUserInterface
+class User implements UserInterface, CreatedAtSettableInterface, UpdatedAtSettableInterface, UpdatedBySettableInterface, DeletedAtSettableInterface, DeletedBySettableInterface, PasswordAuthenticatedUserInterface
 {
-//    use CreatedUpdatedDeletedAtAndByTrait;
+    //    use CreatedUpdatedDeletedAtAndByTrait;
     use CreatedAtAccessorsTrait;
-    use UpdatedAtAndByAccessorsTrait;
     use DeletedAtAndByAccessorsTrait;
+    use UpdatedAtAndByAccessorsTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: 'integer')]
-    #[Groups(['users:read'])]
+    #[Groups(['users:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -169,26 +162,28 @@ class User implements
     private ?string $password = null;
 
     #[ORM\Column(type: 'array')]
-    #[Groups(['user:read'])]
+    #[Groups(['user:read', 'user:write', 'user:put:write'])]
+    #[Assert\Count(exactly: 1, exactMessage: 'Please select exactly one role')]
+    #[Assert\All([new Assert\Choice(callback: [Roles::class, 'getList'], message: 'Please select a valid role')])]
     private array $roles = [];
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     #[Groups(['user:read'])]
-    private ?DateTimeInterface $createdAt = null;
+    private ?\DateTimeInterface $createdAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['user:read'])]
-    private ?DateTimeInterface $updatedAt = null;
+    private ?\DateTimeInterface $updatedAt = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?DateTimeInterface $deletedAt = null;
+    private ?\DateTimeInterface $deletedAt = null;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[Groups(['users:read'])]
-    private ?self $updatedBy = null;
+    private ?UserInterface $updatedBy = null;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
-    private ?self $deletedBy = null;
+    private ?UserInterface $deletedBy = null;
 
     /**
      * @var Collection<int, Project>
@@ -197,16 +192,31 @@ class User implements
     private Collection $projects;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?string $givenName = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read'])]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read'])]
     private ?string $familyName = null;
+
+    /**
+     * @var Collection<int, Card>
+     */
+    #[ORM\ManyToMany(targetEntity: Card::class, mappedBy: 'executor')]
+    private Collection $cards;
+
+    #[ORM\ManyToOne]
+    #[Groups(['users:read', 'user:write', 'project:read', 'user:put:write', 'content-plan:read', 'board:read', 'board-list:read', 'card:read', 'card-log:read', 'board-list:read'])]
+    private ?MediaObject $avatar = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['users:read', 'user:write'])]
+    private ?string $telegramUsername = null;
 
     public function __construct()
     {
         $this->projects = new ArrayCollection();
+        $this->cards = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -229,7 +239,6 @@ class User implements
     public function getRoles(): array
     {
         $roles = $this->roles;
-        $roles[] = 'ROLE_USER';
 
         return array_unique($roles);
     }
@@ -248,7 +257,7 @@ class User implements
 
     public function getUserIdentifier(): string
     {
-        return (string)$this->getId();
+        return (string) $this->getId();
     }
 
     public function addRole(string $role): self
@@ -346,6 +355,57 @@ class User implements
     public function setFamilyName(?string $familyName): static
     {
         $this->familyName = $familyName;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Card>
+     */
+    public function getCards(): Collection
+    {
+        return $this->cards;
+    }
+
+    public function addCard(Card $card): static
+    {
+        if (!$this->cards->contains($card)) {
+            $this->cards->add($card);
+            $card->addExecutor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCard(Card $card): static
+    {
+        if ($this->cards->removeElement($card)) {
+            $card->removeExecutor($this);
+        }
+
+        return $this;
+    }
+
+    public function getAvatar(): ?MediaObject
+    {
+        return $this->avatar;
+    }
+
+    public function setAvatar(?MediaObject $avatar): static
+    {
+        $this->avatar = $avatar;
+
+        return $this;
+    }
+
+    public function getTelegramUsername(): ?string
+    {
+        return $this->telegramUsername;
+    }
+
+    public function setTelegramUsername(?string $telegramUsername): static
+    {
+        $this->telegramUsername = $telegramUsername;
 
         return $this;
     }

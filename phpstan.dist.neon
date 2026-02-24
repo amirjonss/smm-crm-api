@@ -1,0 +1,15 @@
+parameters:
+  level: 3
+  paths:
+    - src/
+
+  bootstrapFiles:
+    - vendor/autoload.php
+
+  symfony:
+    containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
+    consoleApplicationLoader: phpstan/console-application.php
+
+includes:
+  - vendor/phpstan/phpstan-symfony/extension.neon
+  - vendor/phpstan/phpstan-symfony/rules.neon

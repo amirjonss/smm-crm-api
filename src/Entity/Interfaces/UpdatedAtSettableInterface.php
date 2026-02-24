@@ -1,10 +1,10 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace App\Entity\Interfaces;
 
-use DateTimeInterface;
-
 interface UpdatedAtSettableInterface
 {
-    public function setUpdatedAt(DateTimeInterface $updatedAt);
+    public function setUpdatedAt(\DateTimeInterface $updatedAt);
 }

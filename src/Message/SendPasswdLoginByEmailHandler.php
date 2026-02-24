@@ -20,7 +20,7 @@ readonly class SendPasswdLoginByEmailHandler
             ->from('khsystem@mail.ru')
             ->to($message->getEmail())
             ->subject('Password and Login')
-            ->html('login: ' . $message->getEmail() . '<br>' . 'password: ' . $message->getPassword());
+            ->html('login: ' . $message->getEmail() . '<br>password: ' . $message->getPassword());
         $this->mailer->send($email);
     }
 }

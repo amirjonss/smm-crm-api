@@ -39,8 +39,8 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
             controller: DeleteAction::class,
             security: 'object.getExecutor() == user'
         ),
-        new Post(),
-        new Patch(security: 'object.getExecutor() == user'),
+        new Post(security: 'is_granted("ROLE_SMM")'),
+        new Patch(security: '(object.getExecutor() == user && is_granted("ROLE_SMM")) || is_granted("ROLE_ADMIN")'),
         new Patch(
             uriTemplate: '/projects/{id}/admin',
             denormalizationContext: ['groups' => ['admin:write']],
@@ -54,6 +54,7 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
 class Project implements CreatedAtSettableInterface, CreatedBySettableInterface, UpdatedAtSettableInterface, UpdatedBySettableInterface, DeletedBySettableInterface
 {
     use CreatedUpdatedDeletedAtAndByTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

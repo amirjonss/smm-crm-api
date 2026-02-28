@@ -17,7 +17,7 @@ test-api:
 	bin/console doctrine:database:create --if-not-exists --env=test
 	bin/console doctrine:migrations:migrate --no-interaction --env=test
 	bin/console doctrine:fixtures:load --no-interaction --env=test
-	bin/console ask:deploy
+	bin/console ask:install
 	composer test:api
 
 reset-test-db:

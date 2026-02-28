@@ -51,7 +51,7 @@ use Vich\UploaderBundle\Mapping\Annotation as Vich;
 class MediaObject
 {
     #[ApiProperty(writable: false, types: ['https://schema.org/image'], )]
-    #[Groups(['media_object:read', 'users:read', 'board-list:read'])]
+    #[Groups(['media_object:read', 'users:read', 'board-list:read', 'card-log:read'])]
     public ?string $contentUrl = null;
 
     #[Vich\UploadableField(mapping: 'media_object', fileNameProperty: 'filePath')]

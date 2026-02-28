@@ -14,11 +14,11 @@ test:
 	$(DC_PHP) bin/phpunit
 
 test-api:
-	$(DC_PHP) bin/console doctrine:database:create --if-not-exists --env=test
-	$(DC_PHP) bin/console doctrine:migrations:migrate --no-interaction --env=test
-	$(DC_PHP) bin/console doctrine:fixtures:load --no-interaction --env=test
-	$(DC_PHP) bin/console ask:deploy
-	$(DC_PHP) composer test:api
+	bin/console doctrine:database:create --if-not-exists --env=test
+	bin/console doctrine:migrations:migrate --no-interaction --env=test
+	bin/console doctrine:fixtures:load --no-interaction --env=test
+	bin/console ask:deploy
+	composer test:api
 
 reset-test-db:
 	$(DC_PHP) bin/console doctrine:database:drop -f --env=test

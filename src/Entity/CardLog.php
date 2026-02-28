@@ -8,8 +8,13 @@ use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
+use App\Controller\CardLogCreateAction;
+use App\Controller\CardLogDeleteAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Repository\CardLogRepository;
@@ -24,6 +29,18 @@ use Symfony\Component\Validator\Constraints as Assert;
     operations: [
         new Get(),
         new GetCollection(),
+        new Post(
+            controller: CardLogCreateAction::class,
+            denormalizationContext: ['groups' => ['card-log:write']],
+        ),
+        new Patch(
+            denormalizationContext: ['groups' => ['card-log:put:write']],
+            security: 'object.getCreatedBy() == user',
+        ),
+        new Delete(
+            controller: CardLogDeleteAction::class,
+            security: 'object.getCreatedBy() == user',
+        ),
     ],
     normalizationContext: ['groups' => ['card-log:read']],
     denormalizationContext: ['groups' => ['card-log:write']],
@@ -45,7 +62,7 @@ class CardLog implements CreatedAtSettableInterface, CreatedBySettableInterface
     private ?Card $card = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['card-log:read', 'card-log:write'])]
+    #[Groups(['card-log:read', 'card-log:write', 'card-log:write', 'card-log:put:write'])]
     #[Assert\NotBlank]
     private ?string $description = null;
 
@@ -57,6 +74,10 @@ class CardLog implements CreatedAtSettableInterface, CreatedBySettableInterface
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     #[Groups(['card-log:read'])]
     private ?UserInterface $createdBy = null;
+
+    #[ORM\Column(length: 255)]
+    #[Groups(['card-log:read'])]
+    private ?string $type = null;
 
     public function getId(): ?int
     {
@@ -107,6 +128,18 @@ class CardLog implements CreatedAtSettableInterface, CreatedBySettableInterface
     public function setCreatedBy(?UserInterface $user): static
     {
         $this->createdBy = $user;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }

@@ -6,8 +6,8 @@ namespace App\Controller;
 
 use App\Component\BoardList\Dtos\BoardListMovePositionDto;
 use App\Controller\Base\AbstractController;
-use App\Entity\BoardList;
 use App\Service\BoardListSetPositionService;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 
 class BoardListMovePositionAction extends AbstractController
@@ -15,7 +15,7 @@ class BoardListMovePositionAction extends AbstractController
     public function __invoke(
         BoardListMovePositionDto $boardListMovePositionDto,
         BoardListSetPositionService $service,
-    ): BoardList {
+    ): Response {
         $boardList = $boardListMovePositionDto->getBoardList();
 
         try {
@@ -29,6 +29,6 @@ class BoardListMovePositionAction extends AbstractController
             throw new UnprocessableEntityHttpException($e->getMessage());
         }
 
-        return $boardList;
+        return $this->responseNormalized($boardList);
     }
 }

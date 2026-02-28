@@ -19,6 +19,11 @@ class UserRepository extends ServiceEntityRepository
         parent::__construct($registry, User::class);
     }
 
+    public function findOneByEmailAndNotDeleted(string $email): ?User
+    {
+        return $this->findOneBy(['email' => $email, 'deletedBy' => null]);
+    }
+
     public function findOneByEmail(string $email): ?User
     {
         return $this->findOneBy(['email' => $email]);

@@ -22,6 +22,7 @@ use App\Controller\CardAddExecutorAction;
 use App\Controller\CardCreateAction;
 use App\Controller\CardDeleteExecutorAction;
 use App\Controller\CardMovePositionAction;
+use App\Controller\TestLogTelegramAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\UpdatedAtSettableInterface;
@@ -74,6 +75,11 @@ use Symfony\Component\Validator\Constraints as Assert;
         ),
         new Patch(
             denormalizationContext: ['groups' => ['card:put:write']],
+        ),
+        new Post(
+            uriTemplate: '/cards/{id}/test-log-telegram',
+            controller: TestLogTelegramAction::class,
+            denormalizationContext: ['groups' => ['card:test-log-telegram:write']],
         ),
         new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
     ],

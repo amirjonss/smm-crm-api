@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Message;
+namespace App\MessageHandler;
 
+use App\Message\SendPasswdLoginByEmail;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Mime\Email;
@@ -9,7 +10,7 @@ use Symfony\Component\Mime\Email;
 #[AsMessageHandler]
 readonly class SendPasswdLoginByEmailHandler
 {
-    public function __construct(private readonly MailerInterface $mailer)
+    public function __construct(private MailerInterface $mailer)
     {
     }
 

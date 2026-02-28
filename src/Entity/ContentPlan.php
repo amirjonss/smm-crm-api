@@ -39,7 +39,7 @@ use Symfony\Component\Validator\Constraints as Assert;
             controller: DeleteAction::class,
             security: 'object.getProject().getExecutor() == user'
         ),
-        new Post(),
+        new Post(security: 'is_granted("ROLE_SMM")'),
         new Patch(
             security: 'object.getProject().getExecutor() == user'
         ),

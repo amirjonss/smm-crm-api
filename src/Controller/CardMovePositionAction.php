@@ -7,9 +7,9 @@ namespace App\Controller;
 use App\Component\Card\Dtos\CardMovePositionDto;
 use App\Component\User\CurrentUser;
 use App\Controller\Base\AbstractController;
-use App\Entity\Card;
 use App\Event\Card\CardMovedEvent;
 use App\Service\CardSetPositionService;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -20,7 +20,7 @@ class CardMovePositionAction extends AbstractController
         CardSetPositionService $service,
         EventDispatcherInterface $eventDispatcher,
         CurrentUser $currentUser,
-    ): Card {
+    ): Response {
         $card = $cardMovePositionDto->getCard();
         $oldList = $card->getList();
 
@@ -41,6 +41,6 @@ class CardMovePositionAction extends AbstractController
             );
         }
 
-        return $card;
+        return $this->responseNormalized($card);
     }
 }

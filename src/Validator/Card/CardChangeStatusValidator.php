@@ -18,15 +18,6 @@ class CardChangeStatusValidator
         if ($newStatus === CardStatus::DONE && !$this->hasAnyRole($roles, [Roles::ADMIN, Roles::SMM])) {
             throw new UnprocessableEntityHttpException('Only admin and smm roles can set card status to done.');
         }
-
-        if (
-            in_array($newStatus, [CardStatus::IN_PROGRESS, CardStatus::REVIEW], true)
-            && $this->hasAnyRole($roles, [Roles::USER])
-        ) {
-            throw new UnprocessableEntityHttpException(
-                'Role user cannot set card status to in_progress or review.'
-            );
-        }
     }
 
     /**

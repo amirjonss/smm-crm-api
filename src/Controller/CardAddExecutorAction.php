@@ -8,13 +8,14 @@ use App\Component\Card\Dtos\CardExecutorDto;
 use App\Controller\Base\AbstractController;
 use App\Entity\Card;
 use App\Service\CardExecutorService;
+use Symfony\Component\HttpFoundation\Response;
 
 class CardAddExecutorAction extends AbstractController
 {
-    public function __invoke(Card $card, CardExecutorDto $dto, CardExecutorService $service): Card
+    public function __invoke(Card $card, CardExecutorDto $dto, CardExecutorService $service): Response
     {
         $service->add($card, $dto->getExecutor(), $this->getUser());
 
-        return $card;
+        return $this->responseNormalized($card);
     }
 }

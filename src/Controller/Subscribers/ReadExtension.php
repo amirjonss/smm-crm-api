@@ -36,20 +36,6 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
     }
 
     /**
-     * Item operations with id, like GET /users/{id} or DELETE /users/{id}.
-     */
-    public function applyToItem(
-        QueryBuilder $queryBuilder,
-        QueryNameGeneratorInterface $queryNameGenerator,
-        string $resourceClass,
-        array $identifiers,
-        ?Operation $operation = null,
-        array $context = [],
-    ): void {
-        $this->andWhere($queryBuilder, $resourceClass);
-    }
-
-    /**
      * In this method you can join user table for all queries. So that users can see only their entities.
      * Also, you should hide elements that marked as deleted.
      *
@@ -72,10 +58,46 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
         switch ($resourceClass) {
             case ContentPlan::class:
             case ContentPlanPlatform::class:
+                $this->joinEntityAndAddUser($queryBuilder, $rootTable, 'project');
+                break;
             case Project::class:
-                $this->addUser($queryBuilder, $rootTable);
+                $this->addExecutor($queryBuilder, $rootTable);
                 break;
         }
+    }
+
+    private function hasResourceClassInterfaceOf(string $interfaceName): bool
+    {
+        return in_array($interfaceName, $this->resourceClassInterfaces, true);
+    }
+
+    private function hideDeleted(QueryBuilder $queryBuilder, string $tableName): void
+    {
+        $queryBuilder->andWhere("{$tableName}.deletedBy is null");
+    }
+
+    private function addUser(QueryBuilder $queryBuilder, string $tableName): void
+    {
+        $queryBuilder->andWhere("{$tableName}.executor = :user");
+        $queryBuilder->setParameter('user', $this->getUser());
+
+        // or if you use microservices
+        // $queryBuilder->andWhere("{$tableName}.userId = :userId");
+        // $queryBuilder->setParameter('userId', $this->getJwtUser()->getId());
+    }
+
+    /**
+     * Item operations with id, like GET /users/{id} or DELETE /users/{id}.
+     */
+    public function applyToItem(
+        QueryBuilder $queryBuilder,
+        QueryNameGeneratorInterface $queryNameGenerator,
+        string $resourceClass,
+        array $identifiers,
+        ?Operation $operation = null,
+        array $context = [],
+    ): void {
+        $this->andWhere($queryBuilder, $resourceClass);
     }
 
     private function joinEntityAndAddUser(
@@ -88,23 +110,9 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
         $this->addUser($queryBuilder, $joinTable);
     }
 
-    private function addUser(QueryBuilder $queryBuilder, string $tableName): void
+    private function addExecutor(QueryBuilder $queryBuilder, string $tableName): void
     {
-        $queryBuilder->andWhere("{$tableName}.createdBy = :user");
-        $queryBuilder->setParameter('user', $this->getUser());
-
-        // or if you use microservices
-        // $queryBuilder->andWhere("{$tableName}.userId = :userId");
-        // $queryBuilder->setParameter('userId', $this->getJwtUser()->getId());
-    }
-
-    private function hideDeleted(QueryBuilder $queryBuilder, string $tableName): void
-    {
-        $queryBuilder->andWhere("{$tableName}.deletedBy is null");
-    }
-
-    private function hasResourceClassInterfaceOf(string $interfaceName): bool
-    {
-        return in_array($interfaceName, $this->resourceClassInterfaces, true);
+        $queryBuilder->andWhere("{$tableName}.executor = :executor");
+        $queryBuilder->setParameter('executor', $this->getUser());
     }
 }

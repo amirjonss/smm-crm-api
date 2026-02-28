@@ -26,6 +26,9 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-
+    Monolog\Handler\TelegramBotHandler:
+        arguments:
+            $apiKey: '%env(TELEGRAM_BOT_TOKEN)%'
+            $channel: '%env(TELEGRAM_LOG_CHAT_ID)%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

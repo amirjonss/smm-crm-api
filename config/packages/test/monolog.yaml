@@ -1,0 +1,4 @@
+monolog:
+    handlers:
+        null_main:
+            type: null

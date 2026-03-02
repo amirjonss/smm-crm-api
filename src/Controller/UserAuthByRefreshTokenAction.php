@@ -38,6 +38,8 @@ class UserAuthByRefreshTokenAction extends AbstractController
         DenormalizerInterface $denormalizer,
     ): Response {
         $requestDto = $this->getDtoFromRequest($request, RefreshTokenRequestDto::class);
+        $this->validate($requestDto);
+
         $refreshTokenDto = $this->arrayToDto($denormalizer, $tokenEncoder->decode($requestDto->getRefreshToken()));
 
         $user = $userRepository->find($refreshTokenDto->getId());

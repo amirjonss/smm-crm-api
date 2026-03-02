@@ -1,96 +1,169 @@
-# Api Starter Kit
+# KH Agency CRM API
 
-[//]: <> ( todo udpate image and add new docker commands, tell about interfaces )
+Backend API для CRM-части KH Agency: управление пользователями, проектами, контент-планами, досками, списками и карточками.
 
+## Стек
 
-Starter kit for API with 
-[Symfony Skeleton](https://symfony.com/),
-[Doctrine](https://www.doctrine-project.org/), 
-[Maker Bundle](https://symfony.com/doc/current/bundles/SymfonyMakerBundle/index.html), 
-[Migrations Bundle](https://symfony.com/doc/current/bundles/DoctrineMigrationsBundle/index.html), 
-[Api-Platform](https://api-platform.com/) and 
-[Lexik JWT-auth](https://jwt.io/).
+- PHP `8.2+`
+- Symfony `7.3`
+- API Platform `4.1`
+- Doctrine ORM + Migrations
+- MariaDB `11`
+- Redis `7` (Messenger/кеш)
+- JWT (LexikJWTAuthenticationBundle)
+- Docker Compose
 
-Kit has also already created User entity with all crud routes
+## Основные сущности
 
-Kit has 3 docker containers: **php, nginx** and **db** 
+- `User`
+- `Project`
+- `ContentPlan`
+- `ContentPlanPlatform`
+- `Board`
+- `BoardList`
+- `Card`
+- `CardLog`
+- `CardPattern`
 
-![poster](poster.png)
-## Installation
+## Быстрый старт
 
-Download the project<br>
+1. Поднять контейнеры:
+
 ```bash
-composer create-project kadirov/api-starter-kit --ignore-platform-reqs --no-scripts
+docker compose up -d --build
 ```
 
-Go to the project directory
-```bash
-cd api-starter-kit
-```
+2. Установить зависимости:
 
-
-Run docker containers
-```bash
-docker compose up -d
-```
-
-Install composer scripts
 ```bash
 docker compose exec php composer install
 ```
 
-To install project run command
+3. Выполнить первичную установку:
+
 ```bash
 docker compose exec php bin/console ask:install
 ```
 
-**Done! You can open <a href="http://localhost:8507/api" target="_blank">http://localhost:8507/api</a> via browser. 
-By the way, you can change this port by changing ```DOCKER_NGINX_PORT``` variable in [.env](.env) file.** 
+Команда `ask:install`:
+- ожидает доступность БД;
+- запускает `ask:deploy` (миграции, кеш и т.д.);
+- генерирует JWT-ключи (`ask:generate:jwtKeys`).
 
-## Docker
-For enter to php container run 
+После запуска API доступен по адресу:
+
+- `http://localhost:8512/api` (по умолчанию)
+
+Порт настраивается через `DOCKER_NGINX_PORT` в `.env`.
+
+## Тестовые пользователи (fixtures)
+
+- `admin@example.com` / `passwd` (`ROLE_ADMIN`)
+- `smm@example.com` / `passwd` (`ROLE_SMM`)
+- `smm2@example.com` / `passwd` (`ROLE_SMM`)
+- `operator@example.com` / `passwd` (`ROLE_OPERATOR`)
+
+JWT авторизация:
+
+- `POST /api/users/auth`
+- `POST /api/users/auth-by-refresh-token`
+
+## Полезные команды
+
+Запуск shell в контейнере:
+
 ```bash
 docker compose exec php bash
 ```
 
-For enter to db container run 
+Повторный деплой локально после `git pull`:
+
 ```bash
-docker compose exec db bash
+docker compose exec php bin/console ask:deploy
 ```
 
-For enter to nginx container run 
+Линтинг:
+
 ```bash
-docker compose exec nginx bash
+make lint
 ```
 
-You can change containers prefix by changing ```DOCKER_PROJECT_NAME``` variable in [.env](.env) file.  
+Автофикс стиля:
 
-Also, you can change public ports of nginx and mysql by changing ```DOCKER_NGINX_PORT``` and ```DOCKER_DATABASE_PORT```
+```bash
+make lint-fix
+```
 
-Database allows connections only from localhost. 
-Because of this when you use the project on production and want to connect to database from your computer
-you should connect via ssh bridge.
+API тесты:
+
+```bash
+make test-api
+```
+
+Сброс тестовой БД:
+
+```bash
+make reset-test-db
+```
+
+Заполнение БД демо-данными:
+
+```bash
+docker compose exec php bin/console app:seed-database
+```
+
+Отправка контент-планов за сегодня в Telegram:
+
+```bash
+docker compose exec php bin/console app:send-daily-content-plans --chatId=<CHAT_ID>
+```
+
+Webhook для запуска отправки:
+
+- `POST /api/webhook/content-plans/send-daily`
+
+## Docker и окружение
+
+Сервисы в `docker-compose.yml`:
+
+- `php`
+- `nginx`
+- `db` (MariaDB)
+- `redis`
+- `mailer` (Mailpit)
+- `backup` + `telegram-bot-api` (профиль `backup`)
+
+Параметры окружения по умолчанию:
+
+- `DOCKER_PROJECT_NAME=kh-agency-api`
+- `DOCKER_NGINX_PORT=8512`
+- `DOCKER_DATABASE_PORT=3512`
 
 ## Backup
-For automatic backups use:
+
+Включить backup-профиль:
+
 ```bash
 docker compose --profile backup up -d
 ```
 
-In your [.gitlab-ci.yml](.gitlab-ci.yml), the backup profile is configured
-to run on the production server and perform backups daily at 00:00 UTC.
+Ручной запуск бэкапа:
 
-To run manual backup:
 ```bash
 docker compose exec backup /usr/local/bin/backup.sh
 ```
 
-## Cron
+## CI
 
-You can use [docker/php/cron-file](docker/php/cron-file) for cron jobs. 
-After you must re-build php container by running command:<br> 
-```docker compose up -d --build```
+Pipeline (`.gitlab-ci.yml`) включает стадии:
 
-## Swagger 
-You can change project name and description on swagger by editing file
-[config/packages/api_platform.yaml](config/packages/api_platform.yaml)
+- `build`
+- `lint`
+- `test`
+- `deploy`
+
+Проверки:
+
+- `php-cs-fixer`
+- `phpstan`
+- API tests (`make test-api`)

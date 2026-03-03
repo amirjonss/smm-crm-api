@@ -115,7 +115,7 @@ class Card implements CreatedAtSettableInterface, CreatedBySettableInterface, Up
     private ?string $name = null;
 
     #[ORM\Column(length: 32, enumType: CardStatus::class)]
-    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:put:write'])]
+    #[Groups(['card:read', 'card:write', 'board-list:read', 'card:put:write', 'board-list:read'])]
     #[Assert\NotNull]
     private CardStatus $status = CardStatus::OPEN;
 
@@ -124,11 +124,11 @@ class Card implements CreatedAtSettableInterface, CreatedBySettableInterface, Up
     private bool $isArchived = false;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['card:read', 'card:post:write', 'board-list:read', 'card:put:write'])]
+    #[Groups(['card:read', 'card:post:write', 'board-list:read', 'card:put:write', 'board-list:read'])]
     private ?\DateTime $deadline = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['card:read', 'card:write', 'card:post:write', 'card:put:write'])]
+    #[Groups(['card:read', 'card:write', 'card:post:write', 'card:put:write', 'board-list:read'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 32, nullable: true)]

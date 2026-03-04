@@ -40,7 +40,11 @@ class ArchivedItemsExtension implements QueryCollectionExtensionInterface
             return;
         }
 
-        //         Default GetCollection: exclude archived items
+        if ($resourceClass === BoardList::class) {
+            $queryBuilder->innerJoin($rootAlias . '.cards', 'cards', 'WITH', 'cards.isArchived = false');
+        }
+
+        // Default GetCollection: exclude archived items
         $queryBuilder->andWhere(sprintf('%s.isArchived = :archivedFilter', $rootAlias));
         $queryBuilder->setParameter('archivedFilter', false);
     }

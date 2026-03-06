@@ -41,6 +41,7 @@ class BoardListChangeSubscriber implements EventSubscriberInterface
 
         if ($request->getMethod() === Request::METHOD_POST) {
             $this->mercurePublisher->publishListCreated($boardList);
+
             return;
         }
 

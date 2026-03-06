@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Subscribers;
 
 use ApiPlatform\Symfony\EventListener\EventPriorities;
+use App\Component\Board\MercurePublisher;
 use App\Component\User\CurrentUser;
 use App\Entity\Card;
 use App\Event\Card\CardArchivedEvent;
@@ -16,7 +17,6 @@ use App\Event\Card\CardStatusChangedEvent;
 use App\Event\Card\CardUnarchivedEvent;
 use App\Service\CardSetPositionService;
 use App\Validator\Card\CardChangeStatusValidator;
-use App\Component\Board\MercurePublisher;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;

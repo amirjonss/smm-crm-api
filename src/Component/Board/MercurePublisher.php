@@ -7,6 +7,7 @@ namespace App\Component\Board;
 use App\Entity\BoardList;
 use App\Entity\Card;
 use App\Entity\CardLog;
+use App\Entity\User;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Mercure\HubInterface;
 use Symfony\Component\Mercure\Update;
@@ -61,6 +62,7 @@ class MercurePublisher
         }
 
         $createdBy = $log->getCreatedBy();
+        $createdBy = $createdBy instanceof User ? $createdBy : null;
         $this->publish('card.log_added', [
             'cardId' => $card->getId(),
             'log' => [

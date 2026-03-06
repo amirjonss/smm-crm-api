@@ -16,6 +16,7 @@ use App\Event\Card\CardStatusChangedEvent;
 use App\Event\Card\CardUnarchivedEvent;
 use App\Service\CardSetPositionService;
 use App\Validator\Card\CardChangeStatusValidator;
+use App\Component\Board\MercurePublisher;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -31,6 +32,7 @@ class CardChangeSubscriber implements EventSubscriberInterface
         private CardChangeStatusValidator $cardStatusChangeValidationService,
         private CardSetPositionService $cardSetPositionService,
         private EntityManagerInterface $entityManager,
+        private MercurePublisher $mercurePublisher,
     ) {
     }
 
@@ -62,12 +64,21 @@ class CardChangeSubscriber implements EventSubscriberInterface
         }
 
         $this->renameAction($previousCard, $card);
+        $this->descriptionAction($previousCard, $card);
         $this->setDeadlineAction($previousCard, $card);
         $this->changeDeadlineAction($previousCard, $card);
         $this->deleteDeadlineAction($previousCard, $card);
         $this->archiveAction($previousCard, $card);
         $this->unarchiveAction($previousCard, $card);
         $this->changeStatusAction($previousCard, $card);
+    }
+
+    public function descriptionAction(Card $previousCard, Card $card): void
+    {
+        if ($previousCard->getDescription() === $card->getDescription()) {
+            return;
+        }
+        $this->mercurePublisher->publishCardUpdated($card);
     }
 
     public function renameAction(Card $previousCard, Card $card): void

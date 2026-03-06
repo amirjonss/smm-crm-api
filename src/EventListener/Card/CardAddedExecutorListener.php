@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\EventListener\Card;
 
+use App\Component\Board\MercurePublisher;
 use App\Component\CardLog\CardLogFactory;
 use App\Component\CardLog\CardLogManager;
 use App\Event\Card\CardAddedExecutorEvent;
@@ -12,8 +13,11 @@ use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 #[AsEventListener]
 class CardAddedExecutorListener
 {
-    public function __construct(private CardLogFactory $cardLogFactory, private CardLogManager $cardLogManager)
-    {
+    public function __construct(
+        private CardLogFactory $cardLogFactory,
+        private CardLogManager $cardLogManager,
+        private MercurePublisher $mercurePublisher,
+    ) {
     }
 
     public function __invoke(CardAddedExecutorEvent $event): void
@@ -26,5 +30,6 @@ class CardAddedExecutorListener
         $cardLog->setCreatedBy($user);
 
         $this->cardLogManager->save($cardLog, true);
+        $this->mercurePublisher->publishCardUpdated($event->getCard());
     }
 }

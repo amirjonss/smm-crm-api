@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Component\BoardList\Dtos\BoardListMovePositionDto;
+use App\Controller\BoardListArchiveAllCardsAction;
 use App\Controller\BoardListCreateAction;
 use App\Controller\BoardListMovePositionAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
@@ -58,6 +59,16 @@ use Symfony\Component\Validator\Constraints as Assert;
             security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"
         ),
         new Delete(security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')"),
+        new Post(
+            uriTemplate: '/board_lists/{id}/archive-cards',
+            controller: BoardListArchiveAllCardsAction::class,
+            security: "is_granted('ROLE_ADMIN') or is_granted('ROLE_SMM')",
+            read: true,
+            deserialize: false,
+            validate: false,
+            write: false,
+            name: 'board_list_archive_all_cards',
+        ),
     ],
     normalizationContext: ['groups' => ['board-list:read']],
     denormalizationContext: ['groups' => ['board-list:write']],

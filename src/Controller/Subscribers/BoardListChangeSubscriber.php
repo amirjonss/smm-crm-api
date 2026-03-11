@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Subscribers;
 
 use ApiPlatform\Symfony\EventListener\EventPriorities;
+use App\Component\Board\MercurePublisher;
 use App\Entity\BoardList;
 use App\Service\BoardListSetPositionService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,6 +19,7 @@ class BoardListChangeSubscriber implements EventSubscriberInterface
     public function __construct(
         private BoardListSetPositionService $boardListSetPositionService,
         private EntityManagerInterface $entityManager,
+        private MercurePublisher $mercurePublisher,
     ) {
     }
 
@@ -31,14 +33,19 @@ class BoardListChangeSubscriber implements EventSubscriberInterface
     public function onWrite(ViewEvent $event): void
     {
         $request = $event->getRequest();
-
-        if ($request->getMethod() !== Request::METHOD_PATCH) {
-            return;
-        }
-
         $boardList = $event->getControllerResult();
 
         if (!$boardList instanceof BoardList) {
+            return;
+        }
+
+        if ($request->getMethod() === Request::METHOD_POST) {
+            $this->mercurePublisher->publishListCreated($boardList);
+
+            return;
+        }
+
+        if ($request->getMethod() !== Request::METHOD_PATCH) {
             return;
         }
 
@@ -50,6 +57,7 @@ class BoardListChangeSubscriber implements EventSubscriberInterface
 
         $this->archiveAction($previousBoardList, $boardList);
         $this->unarchiveAction($previousBoardList, $boardList);
+        $this->mercurePublisher->publishListUpdated($boardList);
     }
 
     private function archiveAction(BoardList $oldBoardList, BoardList $newBoardList): void

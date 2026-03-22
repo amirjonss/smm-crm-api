@@ -121,7 +121,7 @@ deploy-prod-job:
             git reset --hard &&
             git pull origin master &&
             docker compose down &&
-            docker compose up -d --build &&
+            docker compose --env-file=.env.local up -d --build &&
             docker compose exec php composer install --no-scripts --optimize-autoloader &&
             docker compose exec php bin/console ask:deploy"
 #           docker compose --profile backup up -d --build  need for backup

@@ -108,8 +108,6 @@ class SendDailyContentPlansCommand extends Command
                         default => '',
                     };
                     $platformParts[] = $shortName . $statusEmoji;
-                } else {
-                    $platformParts[] = $shortName;
                 }
             }
 

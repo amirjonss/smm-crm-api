@@ -26,6 +26,7 @@ class ContentPlanRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('c')
             ->leftJoin('c.project', 'p')
             ->andWhere('c.date = :today')
+            ->andWhere('c.deletedBy IS NULL')
             ->andWhere('p.deletedBy IS NULL')
             ->andWhere('p.isActive = true')
             ->setParameter('today', $today)

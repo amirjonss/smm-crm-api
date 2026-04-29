@@ -59,6 +59,7 @@ class ReadExtension extends AbstractController implements QueryCollectionExtensi
             case ContentPlan::class:
             case ContentPlanPlatform::class:
                 $this->joinEntityAndAddUser($queryBuilder, $rootTable, 'project');
+                $queryBuilder->andWhere('project.deletedBy IS NULL');
                 break;
             case Project::class:
                 $this->addExecutor($queryBuilder, $rootTable);

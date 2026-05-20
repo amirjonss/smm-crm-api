@@ -19,18 +19,18 @@ class ContentPlanRepository extends ServiceEntityRepository
     /**
      * @return ContentPlan[]
      */
-    public function findTodayContentPlans(): array
+    public function findContentPlansByDateRange(\DateTimeInterface $from, \DateTimeInterface $to): array
     {
-        $today = new \DateTime('today');
-
         return $this->createQueryBuilder('c')
             ->leftJoin('c.project', 'p')
-            ->andWhere('c.date = :today')
+            ->andWhere('c.date >= :from')
+            ->andWhere('c.date <= :to')
             ->andWhere('c.deletedBy IS NULL')
             ->andWhere('p.deletedBy IS NULL')
             ->andWhere('p.isActive = true')
-            ->setParameter('today', $today)
-            ->orderBy('c.position', 'ASC') // Optional: order by position
+            ->setParameter('from', $from)
+            ->setParameter('to', $to)
+            ->orderBy('c.position', 'ASC')
             ->getQuery()
             ->getResult();
     }

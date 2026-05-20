@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Command;
 
+use App\Enum\ReportType;
 use App\Repository\ContentPlanRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -13,10 +14,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'app:send-daily-content-plans',
-    description: 'Sends today\'s content plans to Telegram',
+    name: 'app:send-content-plans-report',
+    description: 'Sends content plans report to Telegram',
 )]
-class SendDailyContentPlansCommand extends Command
+class SendContentPlansReportCommand extends Command
 {
     public function __construct(
         private ContentPlanRepository $contentPlanRepository,
@@ -28,12 +29,20 @@ class SendDailyContentPlansCommand extends Command
 
     protected function configure(): void
     {
-        $this->addOption(
-            'chatId',
-            null,
-            InputOption::VALUE_REQUIRED,
-            'Telegram chat ID to send the message to'
-        );
+        $this
+            ->addOption(
+                'chatId',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Telegram chat ID to send the message to'
+            )
+            ->addOption(
+                'reportType',
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Report type: today or yesterday',
+                ReportType::TODAY->value
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -54,12 +63,22 @@ class SendDailyContentPlansCommand extends Command
             return Command::FAILURE;
         }
 
-        $plans = $this->contentPlanRepository->findTodayContentPlans();
-        $date = date('d.m.Y');
-        $dayOfWeek = $this->getDayOfWeekInUzbek((int) date('w'));
+        $reportType = ReportType::tryFrom($input->getOption('reportType'));
+
+        if ($reportType === null) {
+            $io->error('Invalid --reportType. Allowed values: today, yesterday.');
+
+            return Command::FAILURE;
+        }
+
+        ['from' => $from, 'to' => $to] = $reportType->getDateRange();
+
+        $plans = $this->contentPlanRepository->findContentPlansByDateRange($from, $to);
+        $date = $from->format('d.m.Y');
+        $dayOfWeek = $this->getDayOfWeekInUzbek((int) $from->format('w'));
 
         if (empty($plans)) {
-            $io->info('No content plans for today.');
+            $io->info('No content plans for the selected date.');
             $this->sendMessage($this->telegramBotToken, $chatId, "<b>{$dayOfWeek} - {$date}</b>\n\nНа сегодня планов нет.");
 
             return Command::SUCCESS;
@@ -67,7 +86,6 @@ class SendDailyContentPlansCommand extends Command
 
         $message = "<b>{$dayOfWeek} - {$date}</b>\n\n";
 
-        // Group plans by project
         $projectPlans = [];
         foreach ($plans as $plan) {
             $project = $plan->getProject();

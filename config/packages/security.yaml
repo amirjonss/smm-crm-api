@@ -56,7 +56,7 @@ security:
                 - get
 
         webhook_content_plans:
-            pattern: ^/api/webhook/content-plans/send-daily$
+            pattern: ^/api/webhook/content-plans/report$
             security: false
             methods:
                 - post

@@ -36,13 +36,13 @@ class ContentPlanPlatform
     #[ORM\Column(length: 255)]
     #[Groups(['content-plan-platform:read', 'content-plan-platform:write', 'content-plan:read', 'content-plan:write'])]
     #[Assert\NotBlank]
-    #[Assert\Choice(['YOUTUBE', 'INSTAGRAM', 'FACEBOOK', 'TELEGRAM'], max: 1)]
+    #[Assert\Choice(choices: ['YOUTUBE', 'INSTAGRAM', 'FACEBOOK', 'TELEGRAM'], max: 1)]
     private ?string $name = null;
 
     #[ORM\Column(length: 255, options: ['default' => 'NOT_PUBLISHED'])]
     #[Groups(['content-plan-platform:read', 'content-plan-platform:write', 'content-plan:read', 'content-plan:write'])]
     #[Assert\NotBlank]
-    #[Assert\Choice(['PUBLISHED', 'CANCELED', 'NOT_PUBLISHED', 'RESCHEDULED'])]
+    #[Assert\Choice(choices: ['PUBLISHED', 'CANCELED', 'NOT_PUBLISHED', 'RESCHEDULED'])]
     private string $status = 'NOT_PUBLISHED';
 
     #[ORM\ManyToMany(targetEntity: ContentPlan::class, mappedBy: 'platforms')]

@@ -17,14 +17,19 @@ use Symfony\Component\Routing\Attribute\Route;
 class ContentPlanWebhookAction extends AbstractController
 {
     #[Route('/api/webhook/content-plans/report', name: 'webhook_content_plans_report', methods: ['POST'])]
-    public function __invoke(KernelInterface $kernel, Request $request): Response
+    public function __invoke(KernelInterface $kernel, Request $request, array $telegramAllowedChatIds, string $telegramWebhookSecret): Response
     {
+        $telegramHeaderWebHookSecret = $request->headers->get('X-Telegram-Bot-Api-Secret-Token');
+
+        if (!$telegramHeaderWebHookSecret || !hash_equals($telegramWebhookSecret, $telegramHeaderWebHookSecret)) {
+            return new Response('Forbidden', Response::HTTP_FORBIDDEN);
+        }
+
         $data = json_decode($request->getContent(), true);
         $chatId = $data['message']['chat']['id'] ?? null;
         $chatText = $data['message']['text'] ?? null;
-        $allowedChatIds = $kernel->getContainer()->getParameter('telegram_chat_id');
 
-        if (!in_array($chatId, $allowedChatIds)) {
+        if (!in_array($chatId, $telegramAllowedChatIds)) {
             return new Response('', Response::HTTP_NO_CONTENT);
         }
 

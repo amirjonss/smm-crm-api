@@ -60,6 +60,16 @@ use Symfony\Component\Validator\Constraints as Assert;
             denormalizationContext: ['groups' => ['user:put:write']],
             security: "object == user || is_granted('ROLE_ADMIN')",
         ),
+        new Patch(
+            uriTemplate: 'users/{id}/change-role',
+            denormalizationContext: ['groups' => ['user:change_role:write']],
+            security: 'is_granted("ROLE_ADMIN")',
+        ),
+        new Patch(
+            uriTemplate: 'users/{id}/change-email',
+            denormalizationContext: ['groups' => ['user:change_email:write']],
+            security: 'is_granted("ROLE_ADMIN")',
+        ),
         new Delete(
             controller: DeleteAction::class,
             security: "is_granted('ROLE_ADMIN')",
@@ -153,7 +163,7 @@ class User implements UserInterface, CreatedAtSettableInterface, UpdatedAtSettab
 
     #[ORM\Column(type: 'string', length: 255)]
     #[Assert\Email]
-    #[Groups(['users:read', 'user:write', 'user:put:write', 'user:isUniqueEmail:write', 'user:auth'])]
+    #[Groups(['users:read', 'user:write', 'user:isUniqueEmail:write', 'user:auth', 'user:change_email:write'])]
     private ?string $email = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -162,7 +172,7 @@ class User implements UserInterface, CreatedAtSettableInterface, UpdatedAtSettab
     private ?string $password = null;
 
     #[ORM\Column(type: 'array')]
-    #[Groups(['user:read', 'user:write', 'user:put:write'])]
+    #[Groups(['user:read', 'user:write', 'user:change_role:write'])]
     #[Assert\Count(exactly: 1, exactMessage: 'Please select exactly one role')]
     #[Assert\All([new Assert\Choice(callback: [Roles::class, 'getList'], message: 'Please select a valid role')])]
     private array $roles = [];

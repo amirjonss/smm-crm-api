@@ -70,7 +70,7 @@ class ContentPlan implements CreatedAtSettableInterface, CreatedBySettableInterf
     #[ORM\Column(length: 255)]
     #[Groups(['content-plan:read', 'content-plan:write'])]
     #[Assert\NotBlank]
-    #[Assert\Choice(['Reels', 'Carousel', 'Post', 'Animation', 'Story'], max: 1)]
+    #[Assert\Choice(choices: ['Reels', 'Carousel', 'Post', 'Animation', 'Story'], max: 1)]
     private ?string $format = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]

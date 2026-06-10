@@ -267,6 +267,11 @@ class Project implements CreatedAtSettableInterface, CreatedBySettableInterface,
         return $this->isActive;
     }
 
+    public function getIsActive(): bool
+    {
+        return $this->isActive;
+    }
+
     public function setIsActive(bool $isActive): static
     {
         $this->isActive = $isActive;

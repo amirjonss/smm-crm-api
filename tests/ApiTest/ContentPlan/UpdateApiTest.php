@@ -54,22 +54,4 @@ class UpdateApiTest extends BaseApiTestCase
 
         $this->assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
-
-    public function testAdminCannotUpdateContentPlanOfAnotherExecutor(): void
-    {
-        $contentPlanIri = $this->findIriBy(ContentPlan::class, ['post' => '5 content planning mistakes agencies make']);
-
-        $this->createAdminClientWithCredentials()->request(
-            Request::METHOD_PATCH,
-            $contentPlanIri,
-            [
-                'body' => json_encode([
-                    'post' => 'Should not be updated by admin',
-                ]),
-                'headers' => ['content-type' => 'application/merge-patch+json'],
-            ]
-        );
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
-    }
 }

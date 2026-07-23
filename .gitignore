@@ -41,3 +41,5 @@ phpstan.neon
 /.phpunit.cache/
 ###< phpunit/phpunit ###
 /*.sql
+
+/postman

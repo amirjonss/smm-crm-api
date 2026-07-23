@@ -22,16 +22,4 @@ class DeleteApiTest extends BaseApiTestCase
 
         $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
     }
-
-    public function testFailDeleteProjectBySecurity(): void
-    {
-        $smmProjectIri = $this->findIriBy(Project::class, ['name' => 'Test Project 2']);
-
-        $this->createAdminClientWithCredentials()->request(
-            Request::METHOD_DELETE,
-            $smmProjectIri,
-        );
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
-    }
 }

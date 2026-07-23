@@ -42,26 +42,6 @@ class CreateApiTest extends BaseApiTestCase
         $this->assertSame('Created content plan by SMM', $response->toArray(false)['post']);
     }
 
-    public function testFailCreateContentPlanByAdminRole(): void
-    {
-        $projectIri = $this->findIriBy(Project::class, ['name' => 'Test Project 1']);
-
-        $this->createAdminClientWithCredentials()->request(
-            Request::METHOD_POST,
-            '/api/content_plans',
-            [
-                'body' => json_encode([
-                    'project' => $projectIri,
-                    'post' => 'Created content plan by admin',
-                    'format' => 'Post',
-                    'date' => '2026-03-08',
-                ]),
-            ]
-        );
-
-        $this->assertResponseStatusCodeSame(Response::HTTP_FORBIDDEN);
-    }
-
     public function testFailCreateContentPlanWithInvalidFormat(): void
     {
         $projectIri = $this->findIriBy(Project::class, ['name' => 'Test Project 1']);

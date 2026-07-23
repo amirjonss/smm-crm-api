@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Component\User\Enum\Roles;
 use App\Controller\DeleteAction;
+use App\Controller\ProjectCreateAction;
 use App\Entity\Interfaces\CreatedAtSettableInterface;
 use App\Entity\Interfaces\CreatedBySettableInterface;
 use App\Entity\Interfaces\DeletedAtSettableInterface;
@@ -38,9 +39,15 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
         new GetCollection(),
         new Delete(
             controller: DeleteAction::class,
-            security: 'object.getExecutor() == user'
+            security: 'object.getExecutor() == user || is_granted("ROLE_ADMIN")'
         ),
         new Post(security: 'is_granted("ROLE_SMM")'),
+        new Post(
+            uriTemplate: '/projects/for-user/create',
+            controller: ProjectCreateAction::class,
+            denormalizationContext: ['groups' => ['user:project-create:write']],
+            security: 'is_granted("ROLE_ADMIN")'
+        ),
         new Patch(security: '(object.getExecutor() == user && is_granted("ROLE_SMM")) || is_granted("ROLE_ADMIN")'),
         new Patch(
             uriTemplate: '/projects/{id}/admin',
@@ -63,17 +70,17 @@ class Project implements CreatedAtSettableInterface, CreatedBySettableInterface,
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['project:read', 'project:write', 'content-plan:read'])]
+    #[Groups(['project:read', 'project:write', 'content-plan:read', 'user:project-create:write'])]
     #[Assert\NotBlank]
     private ?string $name = null;
 
     #[ORM\ManyToOne(inversedBy: 'projects')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['project:read', 'content-plan:read', 'admin:write'])]
+    #[Groups(['project:read', 'content-plan:read', 'admin:write', 'user:project-create:write'])]
     private ?User $executor = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['project:read', 'project:write'])]
+    #[Groups(['project:read', 'project:write', 'user:project-create:write'])]
     #[Assert\NotBlank]
     #[Assert\Regex(
         pattern: '/^998 \(\d{2}\) \d{3} - \d{2} - \d{2}$/',

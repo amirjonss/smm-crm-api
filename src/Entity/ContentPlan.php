@@ -38,11 +38,11 @@ use Symfony\Component\Validator\Constraints as Assert;
         new GetCollection(),
         new Delete(
             controller: DeleteAction::class,
-            security: 'object.getProject().getExecutor() == user'
+            security: 'object.getProject().getExecutor() == user || is_granted("ROLE_ADMIN")'
         ),
-        new Post(security: 'is_granted("ROLE_SMM")'),
+        new Post(security: 'is_granted("ROLE_SMM") || is_granted("ROLE_ADMIN")'),
         new Patch(
-            security: 'object.getProject().getExecutor() == user'
+            security: 'object.getProject().getExecutor() == user || is_granted("ROLE_ADMIN")'
         ),
     ],
     normalizationContext: ['groups' => ['content-plan:read']],

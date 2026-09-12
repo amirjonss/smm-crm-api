@@ -5,7 +5,6 @@ namespace App\Command;
 use App\Component\User\UserFactory;
 use App\Component\User\UserManager;
 use App\Controller\UserCreateAction;
-use App\Entity\User;
 use App\Repository\UserRepository;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

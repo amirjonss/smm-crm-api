@@ -34,7 +34,7 @@ class ArchivedItemsExtension implements QueryCollectionExtensionInterface
         $rootAlias = $queryBuilder->getRootAliases()[0];
 
         if ($resourceClass === Board::class) {
-            $queryBuilder->innerJoin($rootAlias . '.lists', 'lists', 'WITH', 'lists.isArchived = false');
+            $queryBuilder->leftJoin($rootAlias . '.lists', 'lists', 'WITH', 'lists.isArchived = false');
 
             return;
         }

@@ -2,6 +2,10 @@
 
 namespace App\Command;
 
+use App\Component\Card\Enum\CardStatus;
+use App\Entity\Board;
+use App\Entity\BoardList;
+use App\Entity\Card;
 use App\Entity\ContentPlan;
 use App\Entity\ContentPlanPlatform;
 use App\Entity\Project;
@@ -103,6 +107,10 @@ class SeedDatabaseCommand extends Command
             'content_plan_platform',
             'content_plan',
             'project',
+            'card_log',
+            'card',
+            'board_list',
+            'board',
             'user',
         ];
 
@@ -121,33 +129,44 @@ class SeedDatabaseCommand extends Command
 
         // Create Admin
         $admin = new User();
-        $admin->setEmail('admin@admin.admin');
+        $admin->setEmail('admin@example.com');
         $admin->setGivenName('Super');
         $admin->setFamilyName('Admin');
         $admin->setRoles(['ROLE_ADMIN']);
         $admin->setCreatedAt(new \DateTime());
-        $admin->setPassword($this->passwordHasher->hashPassword($admin, 'string'));
+        $admin->setPassword($this->passwordHasher->hashPassword($admin, 'passwd'));
         $this->entityManager->persist($admin);
+        $this->entityManager->flush();
 
-        $userCount = 10;
+        $allUserIds = [$admin->getId()];
+
+        $smmUserCount = 10;
         $projectCountPerUser = 5;
 
-        $progressBar = new ProgressBar($output, $userCount * $projectCountPerUser);
+        $progressBar = new ProgressBar($output, $smmUserCount * $projectCountPerUser);
         $progressBar->start();
 
         $formats = ['Reels', 'Carousel', 'Post', 'Animation', 'Story'];
 
-        for ($i = 1; $i <= $userCount; $i++) {
-            $firstName = self::FIRST_NAMES[array_rand(self::FIRST_NAMES)];
-            $lastName = self::LAST_NAMES[array_rand(self::LAST_NAMES)];
-
+        for ($i = 1; $i <= $smmUserCount; $i++) {
             $user = new User();
-            $user->setEmail(strtolower($firstName . '.' . $lastName . $i . '@example.com'));
-            $user->setGivenName($firstName);
-            $user->setFamilyName($lastName);
-            $user->setRoles(['ROLE_USER']);
+
+            if ($i === 1) {
+                $user->setEmail('smm@example.com');
+                $user->setGivenName('Main');
+                $user->setFamilyName('Smm');
+                $user->setPassword($this->passwordHasher->hashPassword($user, 'passwd'));
+            } else {
+                $firstName = self::FIRST_NAMES[array_rand(self::FIRST_NAMES)];
+                $lastName = self::LAST_NAMES[array_rand(self::LAST_NAMES)];
+                $user->setEmail(strtolower($firstName . '.' . $lastName . $i . '@example.com'));
+                $user->setGivenName($firstName);
+                $user->setFamilyName($lastName);
+                $user->setPassword($this->passwordHasher->hashPassword($user, 'string'));
+            }
+
+            $user->setRoles(['ROLE_SMM']);
             $user->setCreatedAt(new \DateTime());
-            $user->setPassword($this->passwordHasher->hashPassword($user, 'string'));
 
             $this->entityManager->persist($user);
 
@@ -174,11 +193,93 @@ class SeedDatabaseCommand extends Command
             }
 
             $this->entityManager->flush();
+            $allUserIds[] = $user->getId();
             $this->entityManager->clear();
         }
 
         $progressBar->finish();
         $io->newLine(2);
+
+        $io->section('Creating accounts for other roles...');
+
+        $otherRoles = ['ROLE_EDITOR', 'ROLE_DESIGNER', 'ROLE_OPERATOR', 'ROLE_USER'];
+        $accountsPerRole = 2;
+
+        foreach ($otherRoles as $role) {
+            for ($i = 1; $i <= $accountsPerRole; $i++) {
+                $firstName = self::FIRST_NAMES[array_rand(self::FIRST_NAMES)];
+                $lastName = self::LAST_NAMES[array_rand(self::LAST_NAMES)];
+
+                $user = new User();
+                $user->setEmail(strtolower($firstName . '.' . $lastName . $i . '@example.com'));
+                $user->setGivenName($firstName);
+                $user->setFamilyName($lastName);
+                $user->setRoles([$role]);
+                $user->setCreatedAt(new \DateTime());
+                $user->setPassword($this->passwordHasher->hashPassword($user, 'string'));
+
+                $this->entityManager->persist($user);
+                $this->entityManager->flush();
+                $allUserIds[] = $user->getId();
+                $this->entityManager->clear();
+            }
+        }
+
+        $io->success('Other role accounts created.');
+
+        $io->section('Creating boards and board lists...');
+
+        $boardListNames = ['Открыто', 'В процессе', 'На проверке', 'Выполнено'];
+        $boardCount = 3;
+        $cardCountPerList = 10;
+
+        for ($b = 0; $b < $boardCount; $b++) {
+            $boardCreator = $this->entityManager->getReference(User::class, $allUserIds[array_rand($allUserIds)]);
+
+            $board = new Board();
+            $board->setName('Board ' . ($b + 1));
+            $board->setPosition($b);
+            $board->setCreatedAt(new \DateTime());
+            $board->setCreatedBy($boardCreator);
+
+            $this->entityManager->persist($board);
+
+            foreach ($boardListNames as $position => $listName) {
+                $listCreator = $this->entityManager->getReference(User::class, $allUserIds[array_rand($allUserIds)]);
+
+                $boardList = new BoardList();
+                $boardList->setName($listName);
+                $boardList->setPosition($position);
+                $boardList->setBoard($board);
+                $boardList->setCreatedAt(new \DateTime());
+                $boardList->setCreatedBy($listCreator);
+
+                $this->entityManager->persist($boardList);
+
+                for ($c = 0; $c < $cardCountPerList; $c++) {
+                    $cardCreatorId = $allUserIds[array_rand($allUserIds)];
+                    $cardExecutorId = $allUserIds[array_rand($allUserIds)];
+                    $cardCreator = $this->entityManager->getReference(User::class, $cardCreatorId);
+                    $cardExecutor = $this->entityManager->getReference(User::class, $cardExecutorId);
+
+                    $topic = self::TOPICS[array_rand(self::TOPICS)];
+
+                    $card = new Card();
+                    $card->setList($boardList);
+                    $card->setName($topic . ' #' . ($c + 1));
+                    $card->setStatus(CardStatus::cases()[array_rand(CardStatus::cases())]);
+                    $card->setPosition($c);
+                    $card->setCreatedAt(new \DateTime());
+                    $card->setCreatedBy($cardCreator);
+                    $card->addExecutor($cardExecutor);
+
+                    $this->entityManager->persist($card);
+                }
+            }
+        }
+
+        $this->entityManager->flush();
+
         $io->success('Database seeded successfully!');
 
         return Command::SUCCESS;

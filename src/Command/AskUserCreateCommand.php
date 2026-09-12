@@ -51,13 +51,7 @@ class AskUserCreateCommand extends Command
         $name = $helper->ask($input, $output, $nameQuestion);
         $familyName = $helper->ask($input, $output, $familyNameQuestion);
 
-        $user = new User();
-        $user->setEmail($email);
-        $user->setPassword($password);
-        $user->setGivenName($name);
-        $user->setFamilyName($familyName);
-
-        ($this->createAction)($user, $this->userFactory, $this->userManager, $this->userRepository);
+        $this->userFactory->create($email, $password, $name, $familyName);
 
         $io->success('You have created a new user successfully');
 
